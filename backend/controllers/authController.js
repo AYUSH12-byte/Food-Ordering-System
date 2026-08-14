@@ -16,9 +16,8 @@ const generateToken = (user) => {
   );
 };
 
-// ===============================
 // REGISTER
-// ===============================
+
 
 const register = async (req, res) => {
   try {
@@ -81,9 +80,7 @@ const register = async (req, res) => {
   }
 };
 
-// ===============================
 // LOGIN
-// ===============================
 
 const login = async (req, res) => {
   try {
@@ -142,9 +139,9 @@ const login = async (req, res) => {
   }
 };
 
-// ===============================
+
 // GET CURRENT USER
-// ===============================
+
 
 const getMe = async (req, res) => {
   try {
