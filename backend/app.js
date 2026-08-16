@@ -11,28 +11,76 @@ const receiptRoutes = require("./routes/receiptRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 
+const errorMiddleware = require("./middleware/errorMiddleware");
+
 const app = express();
 
-app.use(cors());
+// ==========================================
+// GLOBAL MIDDLEWARE
+// ==========================================
+
+app.use(
+  cors({
+    origin: "*",
+  }),
+);
+
 app.use(express.json());
 
-// Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/foods", foodRoutes);
-app.use("/api/cart",cartRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/receipts", receiptRoutes);
-app.use("/api/feedback", feedbackRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+app.use(
+  express.urlencoded({
+    extended: true,
+  }),
+);
 
+// ==========================================
+// HEALTH CHECK
+// ==========================================
 
-// Test route
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
+    success: true,
     message: "Food Ordering System API is running",
   });
 });
+
+// ==========================================
+// API ROUTES
+// ==========================================
+
+app.use("/api/auth", authRoutes);
+
+app.use("/api/categories", categoryRoutes);
+
+app.use("/api/foods", foodRoutes);
+
+app.use("/api/cart", cartRoutes);
+
+app.use("/api/orders", orderRoutes);
+
+app.use("/api/payments", paymentRoutes);
+
+app.use("/api/receipts", receiptRoutes);
+
+app.use("/api/feedback", feedbackRoutes);
+
+app.use("/api/dashboard", dashboardRoutes);
+
+// ==========================================
+// 404 HANDLER
+// ==========================================
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+// ==========================================
+// ERROR HANDLER
+// ==========================================
+
+app.use(errorMiddleware);
 
 module.exports = app;

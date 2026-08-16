@@ -1,38 +1,75 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
-const Food = require("../models/Food");
+const Payment = require("../models/Payment");
+const Receipt = require("../models/Receipt");
+const Counter = require("../models/Counter");
 
-// Delivery charge
 const DELIVERY_CHARGE = 50;
 
+// ==========================================
+// GENERATE RECEIPT NUMBER
+// ==========================================
+
+const generateReceiptNumber = async () => {
+  const year = new Date().getFullYear();
+
+  const counter = await Counter.findOneAndUpdate(
+    { name: "receipt" },
+    { $inc: { sequence: 1 } },
+    {
+      new: true,
+      upsert: true,
+    }
+  );
+
+  const sequence = String(counter.sequence).padStart(
+    5,
+    "0"
+  );
+
+  return `REC-${year}-${sequence}`;
+};
+
+// ==========================================
 // CREATE ORDER
+// ==========================================
 
 const createOrder = async (req, res) => {
   try {
     const {
       deliveryAddress,
       deliveryPhone,
-      deliveryNote,
+      deliveryNote = "",
       paymentMethod = "Cash on Delivery",
     } = req.body;
 
-    // Validate delivery information
+    // -----------------------------
+    // Validation
+    // -----------------------------
+
     if (!deliveryAddress || !deliveryPhone) {
       return res.status(400).json({
         success: false,
-        message: "Delivery address and phone are required",
+        message:
+          "Delivery address and phone are required",
       });
     }
 
-    // Validate payment method
-    if (!["Cash on Delivery", "Online"].includes(paymentMethod)) {
+    if (
+      !["Cash on Delivery", "Online"].includes(
+        paymentMethod
+      )
+    ) {
       return res.status(400).json({
         success: false,
         message: "Invalid payment method",
       });
     }
 
-    // Find customer cart
+    // -----------------------------
+    // Find Cart
+    // -----------------------------
+
     const cart = await Cart.findOne({
       user: req.user.id,
     }).populate("items.food");
@@ -44,49 +81,60 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Check food availability
+    // -----------------------------
+    // Validate Food
+    // -----------------------------
+
     for (const item of cart.items) {
       if (!item.food) {
         return res.status(400).json({
           success: false,
-          message: "One of the food items no longer exists",
+          message:
+            "One of the food items no longer exists",
         });
       }
 
       if (!item.food.isAvailable) {
         return res.status(400).json({
           success: false,
-          message: `${item.food.name} is currently unavailable`,
+          message:
+            `${item.food.name} is currently unavailable`,
         });
       }
     }
 
-    // Create order items
+    // -----------------------------
+    // Create Order Items
+    // -----------------------------
+
     const orderItems = cart.items.map((item) => ({
       food: item.food._id,
       name: item.food.name,
       price: item.price,
       quantity: item.quantity,
-      subtotal: item.price * item.quantity,
+      subtotal:
+        item.price * item.quantity,
     }));
 
-    // Calculate subtotal
+    // -----------------------------
+    // Calculate Totals
+    // -----------------------------
+
     const subtotal = orderItems.reduce(
-      (total, item) => total + item.subtotal,
-      0,
+      (total, item) =>
+        total + item.subtotal,
+      0
     );
 
-    // Calculate delivery
     const deliveryCharge = DELIVERY_CHARGE;
 
-    // Calculate final amount
-    const totalAmount = subtotal + deliveryCharge;
+    const totalAmount =
+      subtotal + deliveryCharge;
 
-    // Payment status
-    const paymentStatus =
-      paymentMethod === "Cash on Delivery" ? "Pending" : "Pending";
+    // -----------------------------
+    // Create Order
+    // -----------------------------
 
-    // Create order
     const order = await Order.create({
       user: req.user.id,
       items: orderItems,
@@ -97,28 +145,92 @@ const createOrder = async (req, res) => {
       deliveryPhone,
       deliveryNote,
       paymentMethod,
-      paymentStatus,
+      paymentStatus: "Pending",
       orderStatus: "Pending",
     });
 
-    // Clear cart after successful order
+    // -----------------------------
+    // Create Payment
+    // -----------------------------
+
+    const payment = await Payment.create({
+      order: order._id,
+      user: req.user.id,
+      amount: totalAmount,
+      paymentMethod,
+      paymentStatus: "Pending",
+    });
+
+    // -----------------------------
+    // Generate Receipt
+    // -----------------------------
+
+    const receiptNumber =
+      await generateReceiptNumber();
+
+    const receipt = await Receipt.create({
+      receiptNumber,
+      order: order._id,
+      user: req.user.id,
+      amount: totalAmount,
+      paymentMethod,
+      paymentStatus: "Pending",
+    });
+
+    // -----------------------------
+    // Clear Cart
+    // -----------------------------
+
     cart.items = [];
     cart.subtotal = 0;
 
     await cart.save();
 
-    // Populate user information
-    const populatedOrder = await Order.findById(order._id)
-      .populate("user", "name email phone")
-      .populate("items.food", "name image");
+    // -----------------------------
+    // Populate Order
+    // -----------------------------
+
+    const populatedOrder =
+      await Order.findById(order._id)
+        .populate(
+          "user",
+          "name email phone"
+        )
+        .populate(
+          "items.food",
+          "name image"
+        );
+
+    // -----------------------------
+    // Response
+    // -----------------------------
 
     res.status(201).json({
       success: true,
       message: "Order placed successfully",
+
       order: populatedOrder,
+
+      payment: {
+        id: payment._id,
+        amount: payment.amount,
+        paymentMethod:
+          payment.paymentMethod,
+        paymentStatus:
+          payment.paymentStatus,
+      },
+
+      receipt: {
+        id: receipt._id,
+        receiptNumber:
+          receipt.receiptNumber,
+      },
     });
   } catch (error) {
-    console.error("Create Order Error:", error);
+    console.error(
+      "Create Order Error:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -127,14 +239,19 @@ const createOrder = async (req, res) => {
   }
 };
 
+// ==========================================
 // GET MY ORDERS
+// ==========================================
 
 const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({
       user: req.user.id,
     })
-      .populate("items.food", "name image")
+      .populate(
+        "items.food",
+        "name image"
+      )
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -143,7 +260,10 @@ const getMyOrders = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.error("Get My Orders Error:", error);
+    console.error(
+      "Get My Orders Error:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -152,14 +272,23 @@ const getMyOrders = async (req, res) => {
   }
 };
 
-
+// ==========================================
 // GET SINGLE ORDER
+// ==========================================
 
 const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id)
-      .populate("user", "name email phone")
-      .populate("items.food", "name image");
+    const order = await Order.findById(
+      req.params.id
+    )
+      .populate(
+        "user",
+        "name email phone"
+      )
+      .populate(
+        "items.food",
+        "name image"
+      );
 
     if (!order) {
       return res.status(404).json({
@@ -168,14 +297,15 @@ const getOrderById = async (req, res) => {
       });
     }
 
-    // Customer can only view own order
     if (
       req.user.role === "customer" &&
-      order.user._id.toString() !== req.user.id
+      order.user._id.toString() !==
+        req.user.id
     ) {
       return res.status(403).json({
         success: false,
-        message: "You are not authorized to view this order",
+        message:
+          "You are not authorized to view this order",
       });
     }
 
@@ -184,7 +314,10 @@ const getOrderById = async (req, res) => {
       order,
     });
   } catch (error) {
-    console.error("Get Order Error:", error);
+    console.error(
+      "Get Order Error:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -193,13 +326,21 @@ const getOrderById = async (req, res) => {
   }
 };
 
+// ==========================================
 // GET ALL ORDERS - ADMIN
+// ==========================================
 
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
-      .populate("user", "name email phone")
-      .populate("items.food", "name image")
+      .populate(
+        "user",
+        "name email phone"
+      )
+      .populate(
+        "items.food",
+        "name image"
+      )
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -208,7 +349,10 @@ const getAllOrders = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.error("Get All Orders Error:", error);
+    console.error(
+      "Get All Orders Error:",
+      error
+    );
 
     res.status(500).json({
       success: false,
@@ -217,28 +361,37 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+// ==========================================
 // UPDATE ORDER STATUS - ADMIN
+// ==========================================
 
-const updateOrderStatus = async (req, res) => {
+const updateOrderStatus = async (
+  req,
+  res
+) => {
   try {
-    const { orderStatus } = req.body;
+    const { orderStatus } =
+      req.body;
 
-    const allowedStatuses = [
-      "Pending",
-      "Preparing",
-      "Ready",
-      "Delivered",
-      "Cancelled",
-    ];
+    const allowedTransitions = {
+      Pending: [
+        "Preparing",
+        "Cancelled",
+      ],
+      Preparing: [
+        "Ready",
+        "Cancelled",
+      ],
+      Ready: [
+        "Delivered",
+      ],
+      Delivered: [],
+      Cancelled: [],
+    };
 
-    if (!allowedStatuses.includes(orderStatus)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order status",
-      });
-    }
-
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(
+      req.params.id
+    );
 
     if (!order) {
       return res.status(404).json({
@@ -247,17 +400,51 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    order.orderStatus = orderStatus;
+    if (
+      !Object.keys(
+        allowedTransitions
+      ).includes(order.orderStatus)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Current order status is invalid",
+      });
+    }
+
+    const possibleStatuses =
+      allowedTransitions[
+        order.orderStatus
+      ];
+
+    if (
+      !possibleStatuses.includes(
+        orderStatus
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          `Cannot change order status from ${order.orderStatus} to ${orderStatus}`,
+      });
+    }
+
+    order.orderStatus =
+      orderStatus;
 
     await order.save();
 
     res.status(200).json({
       success: true,
-      message: "Order status updated successfully",
+      message:
+        "Order status updated successfully",
       order,
     });
   } catch (error) {
-    console.error("Update Order Status Error:", error);
+    console.error(
+      "Update Order Status Error:",
+      error
+    );
 
     res.status(500).json({
       success: false,

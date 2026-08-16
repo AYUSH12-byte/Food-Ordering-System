@@ -1,76 +1,6 @@
 const Payment = require("../models/Payment");
 const Order = require("../models/Order");
 
-// CREATE PAYMENT RECORD
-
-const createPayment = async (req, res) => {
-  try {
-    const { orderId, transactionId } = req.body;
-
-    if (!orderId) {
-      return res.status(400).json({
-        success: false,
-        message: "Order ID is required",
-      });
-    }
-
-    // Find order
-    const order = await Order.findById(orderId);
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    // Customer can only pay for their own order
-    if (req.user.role === "customer" && order.user.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not authorized to make payment for this order",
-      });
-    }
-
-    // Check if payment already exists
-    const existingPayment = await Payment.findOne({
-      order: orderId,
-    });
-
-    if (existingPayment) {
-      return res.status(400).json({
-        success: false,
-        message: "Payment record already exists for this order",
-        payment: existingPayment,
-      });
-    }
-
-    // Create payment
-    const payment = await Payment.create({
-      order: order._id,
-      user: order.user,
-      amount: order.totalAmount,
-      paymentMethod: order.paymentMethod,
-      paymentStatus:
-        order.paymentMethod === "Cash on Delivery" ? "Pending" : "Pending",
-      transactionId: transactionId || "",
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Payment record created successfully",
-      payment,
-    });
-  } catch (error) {
-    console.error("Create Payment Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-};
-
 // MARK PAYMENT AS PAID
 
 const markPaymentAsPaid = async (req, res) => {
@@ -92,11 +22,11 @@ const markPaymentAsPaid = async (req, res) => {
     }
 
     payment.paymentStatus = "Paid";
+
     payment.paymentDate = new Date();
 
     await payment.save();
 
-    // Update order payment status
     await Order.findByIdAndUpdate(payment.order, {
       paymentStatus: "Paid",
     });
@@ -126,6 +56,13 @@ const markPaymentAsFailed = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Payment not found",
+      });
+    }
+
+    if (payment.paymentStatus === "Paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Paid payment cannot be marked as failed",
       });
     }
 
@@ -182,7 +119,7 @@ const getMyPayments = async (req, res) => {
   }
 };
 
-// GET ALL PAYMENTS - ADMIN
+// GET ALL PAYMENTS
 
 const getAllPayments = async (req, res) => {
   try {
@@ -226,7 +163,6 @@ const getPaymentById = async (req, res) => {
       });
     }
 
-    // Customer can only view own payment
     if (
       req.user.role === "customer" &&
       payment.user._id.toString() !== req.user.id
@@ -252,7 +188,6 @@ const getPaymentById = async (req, res) => {
 };
 
 module.exports = {
-  createPayment,
   markPaymentAsPaid,
   markPaymentAsFailed,
   getMyPayments,

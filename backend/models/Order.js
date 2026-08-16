@@ -11,6 +11,7 @@ const orderItemSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true,
     },
 
     price: {
@@ -38,14 +39,12 @@ const orderItemSchema = new mongoose.Schema(
 
 const orderSchema = new mongoose.Schema(
   {
-    // Customer who placed the order
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
-    // Ordered food items
     items: {
       type: [orderItemSchema],
       required: true,
@@ -57,7 +56,6 @@ const orderSchema = new mongoose.Schema(
       },
     },
 
-    // Price details
     subtotal: {
       type: Number,
       required: true,
@@ -77,7 +75,6 @@ const orderSchema = new mongoose.Schema(
       min: 0,
     },
 
-    // Delivery information
     deliveryAddress: {
       type: String,
       required: true,
@@ -92,18 +89,16 @@ const orderSchema = new mongoose.Schema(
 
     deliveryNote: {
       type: String,
-      default: "",
       trim: true,
+      default: "",
     },
 
-    // Order status
     orderStatus: {
       type: String,
       enum: ["Pending", "Preparing", "Ready", "Delivered", "Cancelled"],
       default: "Pending",
     },
 
-    // Payment status
     paymentStatus: {
       type: String,
       enum: ["Pending", "Paid", "Failed"],

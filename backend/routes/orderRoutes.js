@@ -14,19 +14,20 @@ const router = express.Router();
 
 router.use(protect);
 
-// Create order
+// CUSTOMER
+
 router.post("/", createOrder);
 
-// Customer's orders
 router.get("/my-orders", getMyOrders);
 
-// Admin: all orders
+// ADMIN
+
 router.get("/", authorize("admin"), getAllOrders);
 
-// Admin: update status
 router.put("/:id/status", authorize("admin"), updateOrderStatus);
 
-// Single order
+// SINGLE ORDER
+
 router.get("/:id", getOrderById);
 
 module.exports = router;

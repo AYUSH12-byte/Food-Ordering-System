@@ -1,7 +1,6 @@
 const express = require("express");
 
 const {
-  createPayment,
   markPaymentAsPaid,
   markPaymentAsFailed,
   getMyPayments,
@@ -16,11 +15,7 @@ const router = express.Router();
 router.use(protect);
 
 // Customer
-router.post("/", createPayment);
-
 router.get("/my-payments", getMyPayments);
-
-router.get("/:id", getPaymentById);
 
 // Admin
 router.get("/", authorize("admin"), getAllPayments);
@@ -28,5 +23,8 @@ router.get("/", authorize("admin"), getAllPayments);
 router.put("/:id/paid", authorize("admin"), markPaymentAsPaid);
 
 router.put("/:id/failed", authorize("admin"), markPaymentAsFailed);
+
+// Single payment
+router.get("/:id", getPaymentById);
 
 module.exports = router;

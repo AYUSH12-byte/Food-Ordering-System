@@ -1,95 +1,6 @@
 const PDFDocument = require("pdfkit");
-const Order = require("../models/Order");
+
 const Receipt = require("../models/Receipt");
-
-// GENERATE RECEIPT NUMBER
-
-const generateReceiptNumber = async () => {
-  const year = new Date().getFullYear();
-
-  const count = await Receipt.countDocuments();
-
-  const number = String(count + 1).padStart(5, "0");
-
-  return `REC-${year}-${number}`;
-};
-
-// CREATE RECEIPT
-
-const createReceipt = async (req, res) => {
-  try {
-    const { orderId } = req.body;
-
-    if (!orderId) {
-      return res.status(400).json({
-        success: false,
-        message: "Order ID is required",
-      });
-    }
-
-    // Find order
-    const order = await Order.findById(orderId)
-      .populate("user", "name email phone")
-      .populate("items.food", "name image");
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    // Customer can only create receipt for own order
-    if (
-      req.user.role === "customer" &&
-      order.user._id.toString() !== req.user.id
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not authorized to create this receipt",
-      });
-    }
-
-    // Check existing receipt
-    const existingReceipt = await Receipt.findOne({
-      order: orderId,
-    });
-
-    if (existingReceipt) {
-      return res.status(400).json({
-        success: false,
-        message: "Receipt already exists for this order",
-        receipt: existingReceipt,
-      });
-    }
-
-    // Generate receipt number
-    const receiptNumber = await generateReceiptNumber();
-
-    // Save receipt
-    const receipt = await Receipt.create({
-      receiptNumber,
-      order: order._id,
-      user: order.user._id,
-      amount: order.totalAmount,
-      paymentMethod: order.paymentMethod,
-      paymentStatus: order.paymentStatus,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Receipt generated successfully",
-      receipt,
-    });
-  } catch (error) {
-    console.error("Create Receipt Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-};
 
 // GET RECEIPT
 
@@ -97,7 +8,13 @@ const getReceipt = async (req, res) => {
   try {
     const receipt = await Receipt.findById(req.params.id)
       .populate("user", "name email phone")
-      .populate("order");
+      .populate({
+        path: "order",
+        populate: {
+          path: "items.food",
+          select: "name",
+        },
+      });
 
     if (!receipt) {
       return res.status(404).json({
@@ -106,7 +23,6 @@ const getReceipt = async (req, res) => {
       });
     }
 
-    // Customer can only view own receipt
     if (
       req.user.role === "customer" &&
       receipt.user._id.toString() !== req.user.id
@@ -152,7 +68,6 @@ const downloadReceipt = async (req, res) => {
       });
     }
 
-    // Customer can only download own receipt
     if (
       req.user.role === "customer" &&
       receipt.user._id.toString() !== req.user.id
@@ -165,12 +80,11 @@ const downloadReceipt = async (req, res) => {
 
     const order = receipt.order;
 
-    // PDF response headers
     res.setHeader("Content-Type", "application/pdf");
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=${receipt.receiptNumber}.pdf`,
+      `attachment; filename="${receipt.receiptNumber}.pdf"`,
     );
 
     const doc = new PDFDocument({
@@ -180,26 +94,29 @@ const downloadReceipt = async (req, res) => {
 
     doc.pipe(res);
 
+  
     // HEADER
 
     doc.fontSize(22).font("Helvetica-Bold").text("RESTAURANT NAME", {
       align: "center",
     });
 
-    doc.fontSize(12).font("Helvetica").text("Online Food Ordering System", {
-      align: "center",
-    });
+    doc
+      .fontSize(11)
+      .font("Helvetica")
+      .text("Online Food Ordering & Restaurant Management System", {
+        align: "center",
+      });
 
     doc.moveDown();
 
     doc
       .fontSize(10)
-      .text("--------------------------------------------------", {
+      .text("------------------------------------------------------------", {
         align: "center",
       });
 
-
-    // RECEIPT INFORMATION
+    // RECEIPT DETAILS
 
     doc.moveDown();
 
@@ -208,18 +125,15 @@ const downloadReceipt = async (req, res) => {
       .font("Helvetica-Bold")
       .text(`Receipt No: ${receipt.receiptNumber}`);
 
-    doc
-      .font("Helvetica")
-      .text(`Date: ${new Date(receipt.generatedAt).toLocaleString()}`);
+    doc.font("Helvetica").text(`Order ID: ${order._id}`);
 
-    doc.text(`Order ID: ${order._id}`);
+    doc.text(`Date: ${new Date(receipt.generatedAt).toLocaleString()}`);
 
     doc.moveDown();
-
-
+-
     // CUSTOMER
 
-    doc.font("Helvetica-Bold").text("Customer Information");
+    doc.font("Helvetica-Bold").text("CUSTOMER INFORMATION");
 
     doc
       .font("Helvetica")
@@ -229,7 +143,10 @@ const downloadReceipt = async (req, res) => {
 
     doc.moveDown();
 
-    doc.font("Helvetica-Bold").text("Delivery Information");
+
+    // DELIVERY
+
+    doc.font("Helvetica-Bold").text("DELIVERY INFORMATION");
 
     doc
       .font("Helvetica")
@@ -242,30 +159,29 @@ const downloadReceipt = async (req, res) => {
 
     doc.moveDown();
 
-    // ITEMS
+    // ORDER ITEMS
 
-    doc.font("Helvetica-Bold").text("Order Items");
+    doc.font("Helvetica-Bold").text("ORDER ITEMS");
 
     doc.moveDown(0.5);
 
     order.items.forEach((item) => {
-      const itemSubtotal = item.price * item.quantity;
+      const itemTotal = item.price * item.quantity;
 
       doc
         .font("Helvetica")
-        .text(
-          `${item.name}   x${item.quantity}   Rs. ${itemSubtotal.toFixed(2)}`,
-        );
+        .text(`${item.name}  x${item.quantity}  Rs. ${itemTotal.toFixed(2)}`);
     });
 
     doc.moveDown();
 
-    doc.text("--------------------------------------------------", {
+    doc.text("------------------------------------------------------------", {
       align: "center",
     });
 
 
-    // TOTALS
+    // TOTAL
+
 
     doc.moveDown();
 
@@ -276,7 +192,7 @@ const downloadReceipt = async (req, res) => {
     doc.moveDown(0.5);
 
     doc
-      .fontSize(14)
+      .fontSize(15)
       .font("Helvetica-Bold")
       .text(`TOTAL: Rs. ${order.totalAmount.toFixed(2)}`);
 
@@ -284,20 +200,19 @@ const downloadReceipt = async (req, res) => {
 
     // PAYMENT
 
-    doc.fontSize(11).font("Helvetica-Bold").text("Payment Information");
+    doc.fontSize(11).font("Helvetica-Bold").text("PAYMENT INFORMATION");
 
     doc
       .font("Helvetica")
-      .text(`Payment Method: ${receipt.paymentMethod}`)
+      .text(`Method: ${receipt.paymentMethod}`)
       .text(`Payment Status: ${receipt.paymentStatus}`)
       .text(`Order Status: ${order.orderStatus}`);
 
     doc.moveDown(2);
 
-
     // FOOTER
 
-    doc.fontSize(12).font("Helvetica-Bold").text("Thank You for Your Order!", {
+    doc.fontSize(13).font("Helvetica-Bold").text("Thank You for Your Order!", {
       align: "center",
     });
 
@@ -317,7 +232,6 @@ const downloadReceipt = async (req, res) => {
 };
 
 module.exports = {
-  createReceipt,
   getReceipt,
   downloadReceipt,
 };
