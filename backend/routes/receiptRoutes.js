@@ -6,9 +6,7 @@ const {
   downloadReceipt,
 } = require("../controllers/receiptController");
 
-const {
-  protect,
-} = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -21,9 +19,6 @@ router.post("/", createReceipt);
 router.get("/:id", getReceipt);
 
 // Download PDF
-router.get(
-  "/:id/download",
-  downloadReceipt
-);
+router.get("/:id/download", downloadReceipt);
 
 module.exports = router;
