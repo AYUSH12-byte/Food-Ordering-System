@@ -7,7 +7,7 @@ const foodRoutes = require("./routes/foodRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
-
+const receiptRoutes = require("./routes/receiptRoutes");
 
 
 
@@ -23,6 +23,8 @@ app.use("/api/foods", foodRoutes);
 app.use("/api/cart",cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/receipts", receiptRoutes);
+
 
 // Test route
 app.get("/", (req, res) => {
