@@ -9,7 +9,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const receiptRoutes = require("./routes/receiptRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
-
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
@@ -25,6 +25,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/receipts", receiptRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 
 // Test route
