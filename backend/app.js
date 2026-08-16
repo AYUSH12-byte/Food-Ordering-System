@@ -8,7 +8,7 @@ const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const receiptRoutes = require("./routes/receiptRoutes");
-
+const feedbackRoutes = require("./routes/feedbackRoutes");
 
 
 const app = express();
@@ -24,6 +24,7 @@ app.use("/api/cart",cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/receipts", receiptRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 
 // Test route
