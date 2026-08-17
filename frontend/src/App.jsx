@@ -1,4 +1,9 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 
@@ -14,6 +19,7 @@ import Home from "./pages/customer/Home";
 
 import Dashboard from "./pages/admin/Dashboard";
 import Categories from "./pages/admin/Categories";
+import Foods from "./pages/admin/Foods";
 
 const App = () => {
   return (
@@ -24,27 +30,57 @@ const App = () => {
           {/* PUBLIC */}
           {/* ================================= */}
 
-          <Route path="/login" element={<Login />} />
+          <Route
+            path="/login"
+            element={<Login />}
+          />
 
-          <Route path="/register" element={<Register />} />
+          <Route
+            path="/register"
+            element={<Register />}
+          />
 
           {/* ================================= */}
           {/* CUSTOMER */}
           {/* ================================= */}
 
-          <Route element={<CustomerLayout />}>
-            <Route path="/" element={<Home />} />
+          <Route
+            element={<CustomerLayout />}
+          >
+            <Route
+              path="/"
+              element={<Home />}
+            />
           </Route>
 
           {/* ================================= */}
           {/* ADMIN */}
           {/* ================================= */}
 
-          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin"]}
+              />
+            }
+          >
+            <Route
+              element={<AdminLayout />}
+            >
+              <Route
+                path="/admin/dashboard"
+                element={<Dashboard />}
+              />
 
-              <Route path="/admin/categories" element={<Categories />} />
+              <Route
+                path="/admin/categories"
+                element={<Categories />}
+              />
+
+              <Route
+                path="/admin/foods"
+                element={<Foods />}
+              />
             </Route>
           </Route>
 
@@ -52,7 +88,15 @@ const App = () => {
           {/* FALLBACK */}
           {/* ================================= */}
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/"
+                replace
+              />
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
