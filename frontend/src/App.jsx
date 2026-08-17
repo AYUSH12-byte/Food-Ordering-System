@@ -4,6 +4,9 @@ import { AuthProvider } from "./context/AuthContext";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 
+import CustomerLayout from "./layouts/CustomerLayout";
+import AdminLayout from "./layouts/AdminLayout";
+
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
@@ -15,19 +18,28 @@ const App = () => {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public */}
-          <Route path="/" element={<Home />} />
+          {/* PUBLIC */}
 
           <Route path="/login" element={<Login />} />
 
           <Route path="/register" element={<Register />} />
 
-          {/* Admin */}
-          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
-            <Route path="/admin/dashboard" element={<Dashboard />} />
+          {/* CUSTOMER */}
+
+          <Route element={<CustomerLayout />}>
+            <Route path="/" element={<Home />} />
           </Route>
 
-          {/* Fallback */}
+          {/* ADMIN */}
+
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/admin/dashboard" element={<Dashboard />} />
+            </Route>
+          </Route>
+          
+          {/* FALLBACK */}
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
