@@ -6,9 +6,7 @@ const Counter = require("../models/Counter");
 
 const DELIVERY_CHARGE = 50;
 
-// ==========================================
 // GENERATE RECEIPT NUMBER
-// ==========================================
 
 const generateReceiptNumber = async () => {
   const year = new Date().getFullYear();
@@ -30,10 +28,7 @@ const generateReceiptNumber = async () => {
   return `REC-${year}-${sequence}`;
 };
 
-// ==========================================
 // CREATE ORDER
-// ==========================================
-
 const createOrder = async (req, res) => {
   try {
     const {
@@ -43,9 +38,8 @@ const createOrder = async (req, res) => {
       paymentMethod = "Cash on Delivery",
     } = req.body;
 
-    // -----------------------------
+
     // Validation
-    // -----------------------------
 
     if (!deliveryAddress || !deliveryPhone) {
       return res.status(400).json({
@@ -66,9 +60,7 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // -----------------------------
     // Find Cart
-    // -----------------------------
 
     const cart = await Cart.findOne({
       user: req.user.id,
@@ -81,9 +73,7 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // -----------------------------
     // Validate Food
-    // -----------------------------
 
     for (const item of cart.items) {
       if (!item.food) {
@@ -103,9 +93,7 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // -----------------------------
     // Create Order Items
-    // -----------------------------
 
     const orderItems = cart.items.map((item) => ({
       food: item.food._id,
@@ -116,9 +104,7 @@ const createOrder = async (req, res) => {
         item.price * item.quantity,
     }));
 
-    // -----------------------------
     // Calculate Totals
-    // -----------------------------
 
     const subtotal = orderItems.reduce(
       (total, item) =>
@@ -131,9 +117,7 @@ const createOrder = async (req, res) => {
     const totalAmount =
       subtotal + deliveryCharge;
 
-    // -----------------------------
     // Create Order
-    // -----------------------------
 
     const order = await Order.create({
       user: req.user.id,
@@ -149,9 +133,8 @@ const createOrder = async (req, res) => {
       orderStatus: "Pending",
     });
 
-    // -----------------------------
+
     // Create Payment
-    // -----------------------------
 
     const payment = await Payment.create({
       order: order._id,
@@ -161,9 +144,7 @@ const createOrder = async (req, res) => {
       paymentStatus: "Pending",
     });
 
-    // -----------------------------
     // Generate Receipt
-    // -----------------------------
 
     const receiptNumber =
       await generateReceiptNumber();
@@ -177,18 +158,15 @@ const createOrder = async (req, res) => {
       paymentStatus: "Pending",
     });
 
-    // -----------------------------
+
     // Clear Cart
-    // -----------------------------
 
     cart.items = [];
     cart.subtotal = 0;
 
     await cart.save();
 
-    // -----------------------------
     // Populate Order
-    // -----------------------------
 
     const populatedOrder =
       await Order.findById(order._id)
@@ -201,9 +179,8 @@ const createOrder = async (req, res) => {
           "name image"
         );
 
-    // -----------------------------
     // Response
-    // -----------------------------
+
 
     res.status(201).json({
       success: true,
@@ -239,9 +216,7 @@ const createOrder = async (req, res) => {
   }
 };
 
-// ==========================================
 // GET MY ORDERS
-// ==========================================
 
 const getMyOrders = async (req, res) => {
   try {
@@ -272,9 +247,8 @@ const getMyOrders = async (req, res) => {
   }
 };
 
-// ==========================================
 // GET SINGLE ORDER
-// ==========================================
+
 
 const getOrderById = async (req, res) => {
   try {
@@ -326,9 +300,7 @@ const getOrderById = async (req, res) => {
   }
 };
 
-// ==========================================
 // GET ALL ORDERS - ADMIN
-// ==========================================
 
 const getAllOrders = async (req, res) => {
   try {
@@ -361,9 +333,7 @@ const getAllOrders = async (req, res) => {
   }
 };
 
-// ==========================================
 // UPDATE ORDER STATUS - ADMIN
-// ==========================================
 
 const updateOrderStatus = async (
   req,
