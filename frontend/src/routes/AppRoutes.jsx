@@ -9,16 +9,17 @@ import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 
 import Home from "../pages/customer/Home";
+import Foods from "../pages/customer/Foods";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
-import Foods from "../pages/admin/Foods";
+import AdminFoods from "../pages/admin/Foods";
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* ================================= */}
-      {/* PUBLIC ROUTES */}
+      {/* PUBLIC */}
       {/* ================================= */}
 
       <Route path="/login" element={<Login />} />
@@ -26,24 +27,17 @@ const AppRoutes = () => {
       <Route path="/register" element={<Register />} />
 
       {/* ================================= */}
-      {/* CUSTOMER ROUTES */}
+      {/* CUSTOMER */}
       {/* ================================= */}
 
       <Route element={<CustomerLayout />}>
         <Route path="/" element={<Home />} />
 
-        {/* Future customer routes */}
-        {/* 
         <Route path="/foods" element={<Foods />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/profile" element={<Profile />} />
-        */}
       </Route>
 
       {/* ================================= */}
-      {/* ADMIN ROUTES */}
+      {/* ADMIN */}
       {/* ================================= */}
 
       <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
@@ -52,30 +46,7 @@ const AppRoutes = () => {
 
           <Route path="/admin/categories" element={<Categories />} />
 
-          <Route path="/admin/foods" element={<Foods />} />
-
-          {/* Future admin routes */}
-          {/*
-          <Route
-            path="/admin/orders"
-            element={<Orders />}
-          />
-
-          <Route
-            path="/admin/payments"
-            element={<Payments />}
-          />
-
-          <Route
-            path="/admin/feedback"
-            element={<Feedback />}
-          />
-
-          <Route
-            path="/admin/customers"
-            element={<Customers />}
-          />
-          */}
+          <Route path="/admin/foods" element={<AdminFoods />} />
         </Route>
       </Route>
 

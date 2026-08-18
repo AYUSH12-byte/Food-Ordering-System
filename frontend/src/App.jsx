@@ -1,13 +1,17 @@
 import { BrowserRouter } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+
 import AppRoutes from "./routes/AppRoutes";
 
 const App = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <CartProvider>
+          <AppRoutes />
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   );

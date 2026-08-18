@@ -1,12 +1,18 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
+
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+
+  const { itemCount } = useCart();
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+
     navigate("/login");
   };
 
@@ -25,7 +31,8 @@ const Navbar = () => {
           to="/"
           className="text-xl font-bold tracking-tight text-slate-900"
         >
-          Food<span className="text-slate-500">Order</span>
+          Food
+          <span className="text-slate-500">Order</span>
         </Link>
 
         {/* Navigation */}
@@ -41,7 +48,14 @@ const Navbar = () => {
           {user && user.role === "customer" && (
             <>
               <NavLink to="/cart" className={navLinkClass}>
-                Cart
+                <span className="flex items-center gap-2">
+                  Cart
+                  {itemCount > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-900 px-1 text-[10px] font-bold text-white">
+                      {itemCount}
+                    </span>
+                  )}
+                </span>
               </NavLink>
 
               <NavLink to="/orders" className={navLinkClass}>

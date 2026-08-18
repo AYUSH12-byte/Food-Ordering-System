@@ -69,6 +69,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
 
     setUser(null);
+
+    window.location.reload();
   };
 
   // Check roles

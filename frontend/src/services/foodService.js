@@ -1,19 +1,29 @@
 import api from "./api";
 
+// ==========================================
 // GET FOODS
+// ==========================================
 
-export const getFoods = async (params = {}) => {
-  const response = await api.get("/foods", {
-    params,
-  });
+export const getFoods = async (
+  params = {}
+) => {
+  const response = await api.get(
+    "/foods",
+    {
+      params,
+    }
+  );
 
   return response.data;
 };
 
-
+// ==========================================
 // GET SINGLE FOOD
+// ==========================================
 
-export const getFoodById = async (id) => {
+export const getFoodById = async (
+  id
+) => {
   const response = await api.get(
     `/foods/${id}`
   );
@@ -21,7 +31,9 @@ export const getFoodById = async (id) => {
   return response.data;
 };
 
-// CREATE FOOD
+// ==========================================
+// CREATE FOOD - ADMIN
+// ==========================================
 
 export const createFood = async (
   foodData
@@ -34,8 +46,9 @@ export const createFood = async (
   return response.data;
 };
 
-// UPDATE FOOD
-
+// ==========================================
+// UPDATE FOOD - ADMIN
+// ==========================================
 
 export const updateFood = async (
   id,
@@ -49,10 +62,13 @@ export const updateFood = async (
   return response.data;
 };
 
-// DELETE FOOD
+// ==========================================
+// DELETE FOOD - ADMIN
+// ==========================================
 
-
-export const deleteFood = async (id) => {
+export const deleteFood = async (
+  id
+) => {
   const response = await api.delete(
     `/foods/${id}`
   );
