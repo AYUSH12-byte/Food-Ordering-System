@@ -10,6 +10,7 @@ import Register from "../pages/auth/Register";
 
 import Home from "../pages/customer/Home";
 import Foods from "../pages/customer/Foods";
+import Cart from "../pages/customer/Cart";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -34,6 +35,8 @@ const AppRoutes = () => {
         <Route path="/" element={<Home />} />
 
         <Route path="/foods" element={<Foods />} />
+
+        <Route path="/cart" element={<Cart />} />
       </Route>
 
       {/* ================================= */}
