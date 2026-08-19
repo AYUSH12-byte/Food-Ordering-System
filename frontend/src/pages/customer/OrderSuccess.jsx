@@ -5,9 +5,7 @@ const OrderSuccess = () => {
 
   const { order, payment, receipt } = location.state || {};
 
-  // ==========================================
   // NO STATE
-  // ==========================================
 
   if (!order) {
     return (
