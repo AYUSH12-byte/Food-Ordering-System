@@ -11,6 +11,8 @@ import Register from "../pages/auth/Register";
 import Home from "../pages/customer/Home";
 import Foods from "../pages/customer/Foods";
 import Cart from "../pages/customer/Cart";
+import Checkout from "../pages/customer/Checkout";
+import OrderSuccess from "../pages/customer/OrderSuccess";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -37,6 +39,18 @@ const AppRoutes = () => {
         <Route path="/foods" element={<Foods />} />
 
         <Route path="/cart" element={<Cart />} />
+      </Route>
+
+      {/* ================================= */}
+      {/* CUSTOMER - PROTECTED */}
+      {/* ================================= */}
+
+      <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
+        <Route element={<CustomerLayout />}>
+          <Route path="/checkout" element={<Checkout />} />
+
+          <Route path="/order-success/:id" element={<OrderSuccess />} />
+        </Route>
       </Route>
 
       {/* ================================= */}

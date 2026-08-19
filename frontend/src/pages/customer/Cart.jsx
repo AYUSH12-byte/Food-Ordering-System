@@ -12,8 +12,7 @@ const Cart = () => {
 
   // DELIVERY CHARGE
 
-
-  const deliveryCharge = items.length > 0 ? 100 : 0;
+  const deliveryCharge = items.length > 0 ? 50 : 0;
 
   const subtotal = Number(cart?.subtotal || 0);
 
@@ -150,7 +149,6 @@ const Cart = () => {
       {/* MAIN CONTENT */}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
-
         {/* CART ITEMS */}
 
         <div className="space-y-4 lg:col-span-2">
@@ -305,7 +303,7 @@ const Cart = () => {
             </button>
 
             <p className="mt-4 text-center text-xs leading-5 text-slate-500">
-              Delivery charge is currently fixed at Rs. 100.
+              Delivery charge is currently fixed at Rs. 50.
             </p>
           </div>
         </div>
