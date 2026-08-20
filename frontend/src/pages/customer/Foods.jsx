@@ -49,9 +49,7 @@ const Foods = () => {
     fetchData();
   }, []);
 
-  // ==========================================
   // FILTER
-  // ==========================================
 
   const filteredFoods = useMemo(() => {
     return foods.filter((food) => {

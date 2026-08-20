@@ -7,7 +7,6 @@ const Counter = require("../models/Counter");
 const DELIVERY_CHARGE = 50;
 
 // GENERATE RECEIPT NUMBER
-
 const generateReceiptNumber = async () => {
   const year = new Date().getFullYear();
 
@@ -15,15 +14,12 @@ const generateReceiptNumber = async () => {
     { name: "receipt" },
     { $inc: { sequence: 1 } },
     {
-      new: true,
+      returnDocument: "after",
       upsert: true,
-    }
+    },
   );
 
-  const sequence = String(counter.sequence).padStart(
-    5,
-    "0"
-  );
+  const sequence = String(counter.sequence).padStart(5, "0");
 
   return `REC-${year}-${sequence}`;
 };
@@ -38,22 +34,16 @@ const createOrder = async (req, res) => {
       paymentMethod = "Cash on Delivery",
     } = req.body;
 
-
     // Validation
 
     if (!deliveryAddress || !deliveryPhone) {
       return res.status(400).json({
         success: false,
-        message:
-          "Delivery address and phone are required",
+        message: "Delivery address and phone are required",
       });
     }
 
-    if (
-      !["Cash on Delivery", "Online"].includes(
-        paymentMethod
-      )
-    ) {
+    if (!["Cash on Delivery", "Online"].includes(paymentMethod)) {
       return res.status(400).json({
         success: false,
         message: "Invalid payment method",
@@ -79,16 +69,14 @@ const createOrder = async (req, res) => {
       if (!item.food) {
         return res.status(400).json({
           success: false,
-          message:
-            "One of the food items no longer exists",
+          message: "One of the food items no longer exists",
         });
       }
 
       if (!item.food.isAvailable) {
         return res.status(400).json({
           success: false,
-          message:
-            `${item.food.name} is currently unavailable`,
+          message: `${item.food.name} is currently unavailable`,
         });
       }
     }
@@ -100,22 +88,19 @@ const createOrder = async (req, res) => {
       name: item.food.name,
       price: item.price,
       quantity: item.quantity,
-      subtotal:
-        item.price * item.quantity,
+      subtotal: item.price * item.quantity,
     }));
 
     // Calculate Totals
 
     const subtotal = orderItems.reduce(
-      (total, item) =>
-        total + item.subtotal,
-      0
+      (total, item) => total + item.subtotal,
+      0,
     );
 
     const deliveryCharge = DELIVERY_CHARGE;
 
-    const totalAmount =
-      subtotal + deliveryCharge;
+    const totalAmount = subtotal + deliveryCharge;
 
     // Create Order
 
@@ -133,7 +118,6 @@ const createOrder = async (req, res) => {
       orderStatus: "Pending",
     });
 
-
     // Create Payment
 
     const payment = await Payment.create({
@@ -146,8 +130,7 @@ const createOrder = async (req, res) => {
 
     // Generate Receipt
 
-    const receiptNumber =
-      await generateReceiptNumber();
+    const receiptNumber = await generateReceiptNumber();
 
     const receipt = await Receipt.create({
       receiptNumber,
@@ -158,7 +141,6 @@ const createOrder = async (req, res) => {
       paymentStatus: "Pending",
     });
 
-
     // Clear Cart
 
     cart.items = [];
@@ -168,19 +150,11 @@ const createOrder = async (req, res) => {
 
     // Populate Order
 
-    const populatedOrder =
-      await Order.findById(order._id)
-        .populate(
-          "user",
-          "name email phone"
-        )
-        .populate(
-          "items.food",
-          "name image"
-        );
+    const populatedOrder = await Order.findById(order._id)
+      .populate("user", "name email phone")
+      .populate("items.food", "name image");
 
     // Response
-
 
     res.status(201).json({
       success: true,
@@ -191,23 +165,17 @@ const createOrder = async (req, res) => {
       payment: {
         id: payment._id,
         amount: payment.amount,
-        paymentMethod:
-          payment.paymentMethod,
-        paymentStatus:
-          payment.paymentStatus,
+        paymentMethod: payment.paymentMethod,
+        paymentStatus: payment.paymentStatus,
       },
 
       receipt: {
         id: receipt._id,
-        receiptNumber:
-          receipt.receiptNumber,
+        receiptNumber: receipt.receiptNumber,
       },
     });
   } catch (error) {
-    console.error(
-      "Create Order Error:",
-      error
-    );
+    console.error("Create Order Error:", error);
 
     res.status(500).json({
       success: false,
@@ -223,10 +191,7 @@ const getMyOrders = async (req, res) => {
     const orders = await Order.find({
       user: req.user.id,
     })
-      .populate(
-        "items.food",
-        "name image"
-      )
+      .populate("items.food", "name image")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -235,10 +200,7 @@ const getMyOrders = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.error(
-      "Get My Orders Error:",
-      error
-    );
+    console.error("Get My Orders Error:", error);
 
     res.status(500).json({
       success: false,
@@ -249,20 +211,11 @@ const getMyOrders = async (req, res) => {
 
 // GET SINGLE ORDER
 
-
 const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(
-      req.params.id
-    )
-      .populate(
-        "user",
-        "name email phone"
-      )
-      .populate(
-        "items.food",
-        "name image"
-      );
+    const order = await Order.findById(req.params.id)
+      .populate("user", "name email phone")
+      .populate("items.food", "name image");
 
     if (!order) {
       return res.status(404).json({
@@ -273,13 +226,11 @@ const getOrderById = async (req, res) => {
 
     if (
       req.user.role === "customer" &&
-      order.user._id.toString() !==
-        req.user.id
+      order.user._id.toString() !== req.user.id
     ) {
       return res.status(403).json({
         success: false,
-        message:
-          "You are not authorized to view this order",
+        message: "You are not authorized to view this order",
       });
     }
 
@@ -288,10 +239,7 @@ const getOrderById = async (req, res) => {
       order,
     });
   } catch (error) {
-    console.error(
-      "Get Order Error:",
-      error
-    );
+    console.error("Get Order Error:", error);
 
     res.status(500).json({
       success: false,
@@ -305,14 +253,8 @@ const getOrderById = async (req, res) => {
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
-      .populate(
-        "user",
-        "name email phone"
-      )
-      .populate(
-        "items.food",
-        "name image"
-      )
+      .populate("user", "name email phone")
+      .populate("items.food", "name image")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -321,10 +263,7 @@ const getAllOrders = async (req, res) => {
       orders,
     });
   } catch (error) {
-    console.error(
-      "Get All Orders Error:",
-      error
-    );
+    console.error("Get All Orders Error:", error);
 
     res.status(500).json({
       success: false,
@@ -335,33 +274,19 @@ const getAllOrders = async (req, res) => {
 
 // UPDATE ORDER STATUS - ADMIN
 
-const updateOrderStatus = async (
-  req,
-  res
-) => {
+const updateOrderStatus = async (req, res) => {
   try {
-    const { orderStatus } =
-      req.body;
+    const { orderStatus } = req.body;
 
     const allowedTransitions = {
-      Pending: [
-        "Preparing",
-        "Cancelled",
-      ],
-      Preparing: [
-        "Ready",
-        "Cancelled",
-      ],
-      Ready: [
-        "Delivered",
-      ],
+      Pending: ["Preparing", "Cancelled"],
+      Preparing: ["Ready", "Cancelled"],
+      Ready: ["Delivered"],
       Delivered: [],
       Cancelled: [],
     };
 
-    const order = await Order.findById(
-      req.params.id
-    );
+    const order = await Order.findById(req.params.id);
 
     if (!order) {
       return res.status(404).json({
@@ -370,51 +295,33 @@ const updateOrderStatus = async (
       });
     }
 
-    if (
-      !Object.keys(
-        allowedTransitions
-      ).includes(order.orderStatus)
-    ) {
+    if (!Object.keys(allowedTransitions).includes(order.orderStatus)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Current order status is invalid",
+        message: "Current order status is invalid",
       });
     }
 
-    const possibleStatuses =
-      allowedTransitions[
-        order.orderStatus
-      ];
+    const possibleStatuses = allowedTransitions[order.orderStatus];
 
-    if (
-      !possibleStatuses.includes(
-        orderStatus
-      )
-    ) {
+    if (!possibleStatuses.includes(orderStatus)) {
       return res.status(400).json({
         success: false,
-        message:
-          `Cannot change order status from ${order.orderStatus} to ${orderStatus}`,
+        message: `Cannot change order status from ${order.orderStatus} to ${orderStatus}`,
       });
     }
 
-    order.orderStatus =
-      orderStatus;
+    order.orderStatus = orderStatus;
 
     await order.save();
 
     res.status(200).json({
       success: true,
-      message:
-        "Order status updated successfully",
+      message: "Order status updated successfully",
       order,
     });
   } catch (error) {
-    console.error(
-      "Update Order Status Error:",
-      error
-    );
+    console.error("Update Order Status Error:", error);
 
     res.status(500).json({
       success: false,

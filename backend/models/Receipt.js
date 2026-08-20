@@ -6,6 +6,7 @@ const receiptSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
 
     order: {
@@ -29,11 +30,13 @@ const receiptSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
+      enum: ["Cash on Delivery", "Online"],
       required: true,
     },
 
     paymentStatus: {
       type: String,
+      enum: ["Pending", "Paid", "Failed"],
       required: true,
     },
 
