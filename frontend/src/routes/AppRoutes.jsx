@@ -19,6 +19,7 @@ import OrderDetails from "../pages/customer/OrderDetails";
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
 import AdminFoods from "../pages/admin/Foods";
+import AdminOrders from "../pages/admin/Orders";
 
 const AppRoutes = () => {
   return (
@@ -70,6 +71,7 @@ const AppRoutes = () => {
           <Route path="/admin/categories" element={<Categories />} />
 
           <Route path="/admin/foods" element={<AdminFoods />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
         </Route>
       </Route>
 
