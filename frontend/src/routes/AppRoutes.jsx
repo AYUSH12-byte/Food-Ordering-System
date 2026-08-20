@@ -13,6 +13,8 @@ import Foods from "../pages/customer/Foods";
 import Cart from "../pages/customer/Cart";
 import Checkout from "../pages/customer/Checkout";
 import OrderSuccess from "../pages/customer/OrderSuccess";
+import Orders from "../pages/customer/Orders";
+import OrderDetails from "../pages/customer/OrderDetails";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -50,6 +52,10 @@ const AppRoutes = () => {
           <Route path="/checkout" element={<Checkout />} />
 
           <Route path="/order-success/:id" element={<OrderSuccess />} />
+
+          <Route path="/orders" element={<Orders />} />
+
+          <Route path="/orders/:id" element={<OrderDetails />} />
         </Route>
       </Route>
 
