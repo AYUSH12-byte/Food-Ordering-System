@@ -16,6 +16,7 @@ import OrderSuccess from "../pages/customer/OrderSuccess";
 import Orders from "../pages/customer/Orders";
 import OrderDetails from "../pages/customer/OrderDetails";
 import CustomerPayments from "../pages/customer/Payments";
+import Receipt from "../pages/customer/Receipt";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -61,6 +62,8 @@ const AppRoutes = () => {
           <Route path="/orders/:id" element={<OrderDetails />} />
 
           <Route path="/payments" element={<CustomerPayments />} />
+          
+          <Route path="/receipts/:id" element={<Receipt />} />
         </Route>
       </Route>
 

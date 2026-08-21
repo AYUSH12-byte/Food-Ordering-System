@@ -110,6 +110,12 @@ const orderSchema = new mongoose.Schema(
       enum: ["Cash on Delivery", "Online"],
       default: "Cash on Delivery",
     },
+
+    receipt: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Receipt",
+      default: null,
+    },
   },
   {
     timestamps: true,

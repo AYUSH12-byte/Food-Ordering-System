@@ -6,7 +6,10 @@ const Counter = require("../models/Counter");
 
 const DELIVERY_CHARGE = 50;
 
+// ==========================================
 // GENERATE RECEIPT NUMBER
+// ==========================================
+
 const generateReceiptNumber = async () => {
   const year = new Date().getFullYear();
 
@@ -24,7 +27,10 @@ const generateReceiptNumber = async () => {
   return `REC-${year}-${sequence}`;
 };
 
+// ==========================================
 // CREATE ORDER
+// ==========================================
+
 const createOrder = async (req, res) => {
   try {
     const {
@@ -34,12 +40,21 @@ const createOrder = async (req, res) => {
       paymentMethod = "Cash on Delivery",
     } = req.body;
 
-    // Validation
+    // ------------------------------------------
+    // VALIDATION
+    // ------------------------------------------
 
-    if (!deliveryAddress || !deliveryPhone) {
+    if (!deliveryAddress || !deliveryAddress.trim()) {
       return res.status(400).json({
         success: false,
-        message: "Delivery address and phone are required",
+        message: "Delivery address is required",
+      });
+    }
+
+    if (!deliveryPhone || !deliveryPhone.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Delivery phone is required",
       });
     }
 
@@ -50,11 +65,19 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Find Cart
+    // ------------------------------------------
+    // FIND CUSTOMER CART
+    // ------------------------------------------
 
     const cart = await Cart.findOne({
       user: req.user.id,
-    }).populate("items.food");
+    }).populate({
+      path: "items.food",
+      populate: {
+        path: "category",
+        select: "name",
+      },
+    });
 
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({
@@ -63,7 +86,9 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Validate Food
+    // ------------------------------------------
+    // VALIDATE FOOD ITEMS
+    // ------------------------------------------
 
     for (const item of cart.items) {
       if (!item.food) {
@@ -79,103 +104,193 @@ const createOrder = async (req, res) => {
           message: `${item.food.name} is currently unavailable`,
         });
       }
+
+      if (!item.quantity || item.quantity < 1) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid quantity for ${item.food.name}`,
+        });
+      }
     }
 
-    // Create Order Items
+    // ------------------------------------------
+    // CREATE ORDER ITEMS
+    // ------------------------------------------
 
-    const orderItems = cart.items.map((item) => ({
-      food: item.food._id,
-      name: item.food.name,
-      price: item.price,
-      quantity: item.quantity,
-      subtotal: item.price * item.quantity,
-    }));
+    const orderItems = cart.items.map((item) => {
+      const price = Number(item.price);
 
-    // Calculate Totals
+      const quantity = Number(item.quantity);
+
+      const itemSubtotal = price * quantity;
+
+      return {
+        food: item.food._id,
+        name: item.food.name,
+        price,
+        quantity,
+        subtotal: itemSubtotal,
+      };
+    });
+
+    // ------------------------------------------
+    // CALCULATE SUBTOTAL
+    // ------------------------------------------
 
     const subtotal = orderItems.reduce(
       (total, item) => total + item.subtotal,
       0,
     );
 
+    // ------------------------------------------
+    // DELIVERY CHARGE
+    // ------------------------------------------
+
     const deliveryCharge = DELIVERY_CHARGE;
+
+    // ------------------------------------------
+    // FINAL TOTAL
+    // ------------------------------------------
 
     const totalAmount = subtotal + deliveryCharge;
 
-    // Create Order
+    // ------------------------------------------
+    // CREATE ORDER
+    // ------------------------------------------
 
     const order = await Order.create({
       user: req.user.id,
+
       items: orderItems,
+
       subtotal,
+
       deliveryCharge,
+
       totalAmount,
-      deliveryAddress,
-      deliveryPhone,
-      deliveryNote,
+
+      deliveryAddress: deliveryAddress.trim(),
+
+      deliveryPhone: deliveryPhone.trim(),
+
+      deliveryNote: deliveryNote.trim(),
+
       paymentMethod,
+
       paymentStatus: "Pending",
+
       orderStatus: "Pending",
+
+      receipt: null,
     });
 
-    // Create Payment
+    // ------------------------------------------
+    // CREATE PAYMENT
+    // ------------------------------------------
 
     const payment = await Payment.create({
       order: order._id,
+
       user: req.user.id,
+
       amount: totalAmount,
+
       paymentMethod,
+
       paymentStatus: "Pending",
+
+      transactionId: "",
     });
 
-    // Generate Receipt
+    // ------------------------------------------
+    // GENERATE RECEIPT NUMBER
+    // ------------------------------------------
 
     const receiptNumber = await generateReceiptNumber();
 
+    // ------------------------------------------
+    // CREATE RECEIPT
+    // ------------------------------------------
+
     const receipt = await Receipt.create({
       receiptNumber,
+
       order: order._id,
+
       user: req.user.id,
+
       amount: totalAmount,
+
       paymentMethod,
+
       paymentStatus: "Pending",
     });
 
-    // Clear Cart
+    // ------------------------------------------
+    // LINK RECEIPT TO ORDER
+    // ------------------------------------------
+
+    order.receipt = receipt._id;
+
+    await order.save();
+
+    // ------------------------------------------
+    // CLEAR CART
+    // ------------------------------------------
 
     cart.items = [];
+
     cart.subtotal = 0;
 
     await cart.save();
 
-    // Populate Order
+    // ------------------------------------------
+    // GET COMPLETE ORDER
+    // ------------------------------------------
 
     const populatedOrder = await Order.findById(order._id)
       .populate("user", "name email phone")
-      .populate("items.food", "name image");
+      .populate("items.food", "name image category")
+      .populate("receipt", "receiptNumber");
 
-    // Response
+    // ------------------------------------------
+    // RESPONSE
+    // ------------------------------------------
 
     res.status(201).json({
       success: true,
+
       message: "Order placed successfully",
 
       order: populatedOrder,
 
       payment: {
         id: payment._id,
+
         amount: payment.amount,
+
         paymentMethod: payment.paymentMethod,
+
         paymentStatus: payment.paymentStatus,
       },
 
       receipt: {
         id: receipt._id,
+
         receiptNumber: receipt.receiptNumber,
       },
     });
   } catch (error) {
     console.error("Create Order Error:", error);
+
+    // Handle duplicate errors
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "Duplicate record detected. Please try again.",
+        error: error.keyPattern,
+      });
+    }
 
     res.status(500).json({
       success: false,
@@ -184,7 +299,9 @@ const createOrder = async (req, res) => {
   }
 };
 
+// ==========================================
 // GET MY ORDERS
+// ==========================================
 
 const getMyOrders = async (req, res) => {
   try {
@@ -192,11 +309,16 @@ const getMyOrders = async (req, res) => {
       user: req.user.id,
     })
       .populate("items.food", "name image")
-      .sort({ createdAt: -1 });
+      .populate("receipt", "receiptNumber")
+      .sort({
+        createdAt: -1,
+      });
 
     res.status(200).json({
       success: true,
+
       count: orders.length,
+
       orders,
     });
   } catch (error) {
@@ -209,13 +331,16 @@ const getMyOrders = async (req, res) => {
   }
 };
 
+// ==========================================
 // GET SINGLE ORDER
+// ==========================================
 
 const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate("user", "name email phone")
-      .populate("items.food", "name image");
+      .populate("items.food", "name image")
+      .populate("receipt", "receiptNumber");
 
     if (!order) {
       return res.status(404).json({
@@ -223,6 +348,10 @@ const getOrderById = async (req, res) => {
         message: "Order not found",
       });
     }
+
+    // ------------------------------------------
+    // CUSTOMER OWNERSHIP CHECK
+    // ------------------------------------------
 
     if (
       req.user.role === "customer" &&
@@ -236,6 +365,7 @@ const getOrderById = async (req, res) => {
 
     res.status(200).json({
       success: true,
+
       order,
     });
   } catch (error) {
@@ -248,18 +378,25 @@ const getOrderById = async (req, res) => {
   }
 };
 
+// ==========================================
 // GET ALL ORDERS - ADMIN
+// ==========================================
 
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate("user", "name email phone")
       .populate("items.food", "name image")
-      .sort({ createdAt: -1 });
+      .populate("receipt", "receiptNumber")
+      .sort({
+        createdAt: -1,
+      });
 
     res.status(200).json({
       success: true,
+
       count: orders.length,
+
       orders,
     });
   } catch (error) {
@@ -272,19 +409,33 @@ const getAllOrders = async (req, res) => {
   }
 };
 
+// ==========================================
 // UPDATE ORDER STATUS - ADMIN
+// ==========================================
 
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderStatus } = req.body;
 
+    // ------------------------------------------
+    // STATUS TRANSITIONS
+    // ------------------------------------------
+
     const allowedTransitions = {
       Pending: ["Preparing", "Cancelled"],
+
       Preparing: ["Ready", "Cancelled"],
+
       Ready: ["Delivered"],
+
       Delivered: [],
+
       Cancelled: [],
     };
+
+    // ------------------------------------------
+    // FIND ORDER
+    // ------------------------------------------
 
     const order = await Order.findById(req.params.id);
 
@@ -295,12 +446,20 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
+    // ------------------------------------------
+    // VALIDATE CURRENT STATUS
+    // ------------------------------------------
+
     if (!Object.keys(allowedTransitions).includes(order.orderStatus)) {
       return res.status(400).json({
         success: false,
         message: "Current order status is invalid",
       });
     }
+
+    // ------------------------------------------
+    // VALIDATE NEW STATUS
+    // ------------------------------------------
 
     const possibleStatuses = allowedTransitions[order.orderStatus];
 
@@ -311,14 +470,28 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
+    // ------------------------------------------
+    // UPDATE STATUS
+    // ------------------------------------------
+
     order.orderStatus = orderStatus;
 
     await order.save();
 
+    // ------------------------------------------
+    // RETURN UPDATED ORDER
+    // ------------------------------------------
+
+    const updatedOrder = await Order.findById(order._id)
+      .populate("user", "name email phone")
+      .populate("receipt", "receiptNumber");
+
     res.status(200).json({
       success: true,
+
       message: "Order status updated successfully",
-      order,
+
+      order: updatedOrder,
     });
   } catch (error) {
     console.error("Update Order Status Error:", error);

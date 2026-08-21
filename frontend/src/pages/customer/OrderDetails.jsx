@@ -34,21 +34,19 @@ const OrderDetails = () => {
     fetchOrder();
   }, [id]);
 
-  // LOADING
-
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-52 rounded bg-slate-200" />
+
           <div className="h-64 rounded-2xl bg-slate-200" />
+
           <div className="h-48 rounded-2xl bg-slate-200" />
         </div>
       </div>
     );
   }
-
-  // ERROR
 
   if (error || !order) {
     return (
@@ -68,8 +66,6 @@ const OrderDetails = () => {
       </div>
     );
   }
-
-  // STATUS
 
   const currentStatusIndex = statuses.indexOf(order.orderStatus);
 
@@ -116,10 +112,19 @@ const OrderDetails = () => {
         </div>
       </div>
 
-      {/* Status Tracking */}
+      {/* Tracking */}
 
       <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-slate-900">Order Tracking</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-bold text-slate-900">Order Tracking</h2>
+
+          <Link
+            to="/orders"
+            className="hidden text-sm font-semibold text-slate-500 hover:text-slate-900 sm:block"
+          >
+            All Orders
+          </Link>
+        </div>
 
         {isCancelled ? (
           <div className="mt-6 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-600">
@@ -222,7 +227,7 @@ const OrderDetails = () => {
             </div>
           </div>
 
-          {/* Delivery Information */}
+          {/* Delivery */}
 
           <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-bold text-slate-900">
@@ -309,15 +314,20 @@ const OrderDetails = () => {
               </p>
             </div>
 
-            <div className="mt-5">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                Ordered On
-              </p>
+            {/* Receipt */}
 
-              <p className="mt-2 text-sm text-slate-700">
-                {new Date(order.createdAt).toLocaleString()}
-              </p>
-            </div>
+            {order.receipt?._id && (
+              <Link
+                to={`/receipts/${order.receipt._id}`}
+                className="mt-6 block w-full rounded-lg bg-slate-900 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-slate-800"
+              >
+                View Receipt
+              </Link>
+            )}
+
+            <p className="mt-5 text-center text-xs text-slate-400">
+              Ordered on {new Date(order.createdAt).toLocaleString()}
+            </p>
           </div>
         </div>
       </div>
