@@ -1,42 +1,26 @@
-import {
-  Link,
-  NavLink,
-  useNavigate,
-} from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
-import {
-  useAuth,
-} from "../../context/AuthContext";
-
-import {
-  useCart,
-} from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 
 const Navbar = () => {
-  const {
-    user,
-    logout,
-  } = useAuth();
+  const { user, logout } = useAuth();
 
-  const {
-    itemCount,
-  } = useCart();
+  const { itemCount } = useCart();
 
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  const navLinkClass =
-    ({ isActive }) =>
-      `transition ${
-        isActive
-          ? "font-semibold text-slate-900"
-          : "text-slate-600 hover:text-slate-900"
-      }`;
+  const navLinkClass = ({ isActive }) =>
+    `transition ${
+      isActive
+        ? "font-semibold text-slate-900"
+        : "text-slate-600 hover:text-slate-900"
+    }`;
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -48,40 +32,26 @@ const Navbar = () => {
           className="text-xl font-bold tracking-tight text-slate-900"
         >
           Food
-          <span className="text-slate-500">
-            Order
-          </span>
+          <span className="text-slate-500">Order</span>
         </Link>
 
         {/* Navigation */}
 
         <nav className="hidden items-center gap-6 md:flex">
-          <NavLink
-            to="/"
-            className={navLinkClass}
-          >
+          <NavLink to="/" className={navLinkClass}>
             Home
           </NavLink>
 
-          <NavLink
-            to="/foods"
-            className={navLinkClass}
-          >
+          <NavLink to="/foods" className={navLinkClass}>
             Menu
           </NavLink>
 
-          {user?.role ===
-            "customer" && (
+          {user?.role === "customer" && (
             <>
-              <NavLink
-                to="/cart"
-                className={navLinkClass}
-              >
+              <NavLink to="/cart" className={navLinkClass}>
                 <span className="flex items-center gap-2">
                   Cart
-
-                  {itemCount >
-                    0 && (
+                  {itemCount > 0 && (
                     <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-900 px-1 text-[10px] font-bold text-white">
                       {itemCount}
                     </span>
@@ -89,17 +59,18 @@ const Navbar = () => {
                 </span>
               </NavLink>
 
-              <NavLink
-                to="/orders"
-                className={navLinkClass}
-              >
-                My Orders
+              <NavLink to="/orders" className={navLinkClass}>
+                Orders
+              </NavLink>
+
+              <NavLink to="/payments" className={navLinkClass}>
+                Payments
               </NavLink>
             </>
           )}
         </nav>
 
-        {/* Right side */}
+        {/* Right */}
 
         <div className="flex items-center gap-3">
           {!user ? (
@@ -125,13 +96,10 @@ const Navbar = () => {
                   {user.name}
                 </p>
 
-                <p className="text-xs capitalize text-slate-500">
-                  {user.role}
-                </p>
+                <p className="text-xs capitalize text-slate-500">{user.role}</p>
               </div>
 
-              {user.role ===
-                "admin" && (
+              {user.role === "admin" && (
                 <Link
                   to="/admin/dashboard"
                   className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100"
@@ -142,9 +110,7 @@ const Navbar = () => {
 
               <button
                 type="button"
-                onClick={
-                  handleLogout
-                }
+                onClick={handleLogout}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
               >
                 Logout

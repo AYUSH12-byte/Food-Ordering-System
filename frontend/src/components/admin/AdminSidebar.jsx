@@ -1,8 +1,10 @@
 import { NavLink, useNavigate } from "react-router-dom";
+
 import { useAuth } from "../../context/AuthContext";
 
 const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
   const { logout } = useAuth();
+
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -51,8 +53,10 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
   return (
     <>
       {/* Mobile overlay */}
+
       {mobileOpen && (
         <button
+          type="button"
           aria-label="Close sidebar"
           onClick={() => setMobileOpen(false)}
           className="fixed inset-0 z-30 bg-black/30 lg:hidden"
@@ -65,6 +69,7 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
         }`}
       >
         {/* Logo */}
+
         <div className="flex h-16 items-center border-b border-slate-200 px-6">
           <div>
             <h1 className="text-lg font-bold text-slate-900">FoodOrder</h1>
@@ -74,6 +79,7 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
         </div>
 
         {/* Navigation */}
+
         <nav className="flex-1 space-y-2 overflow-y-auto p-4">
           {menuItems.map((item) => (
             <NavLink
@@ -87,9 +93,11 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
           ))}
         </nav>
 
-        {/* Bottom */}
+        {/* Logout */}
+
         <div className="border-t border-slate-200 p-4">
           <button
+            type="button"
             onClick={handleLogout}
             className="w-full rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
           >

@@ -15,11 +15,13 @@ import Checkout from "../pages/customer/Checkout";
 import OrderSuccess from "../pages/customer/OrderSuccess";
 import Orders from "../pages/customer/Orders";
 import OrderDetails from "../pages/customer/OrderDetails";
+import CustomerPayments from "../pages/customer/Payments";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
 import AdminFoods from "../pages/admin/Foods";
 import AdminOrders from "../pages/admin/Orders";
+import AdminPayments from "../pages/admin/Payments";
 
 const AppRoutes = () => {
   return (
@@ -33,7 +35,7 @@ const AppRoutes = () => {
       <Route path="/register" element={<Register />} />
 
       {/* ================================= */}
-      {/* CUSTOMER */}
+      {/* CUSTOMER PUBLIC */}
       {/* ================================= */}
 
       <Route element={<CustomerLayout />}>
@@ -45,7 +47,7 @@ const AppRoutes = () => {
       </Route>
 
       {/* ================================= */}
-      {/* CUSTOMER - PROTECTED */}
+      {/* CUSTOMER PROTECTED */}
       {/* ================================= */}
 
       <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
@@ -57,6 +59,8 @@ const AppRoutes = () => {
           <Route path="/orders" element={<Orders />} />
 
           <Route path="/orders/:id" element={<OrderDetails />} />
+
+          <Route path="/payments" element={<CustomerPayments />} />
         </Route>
       </Route>
 
@@ -71,7 +75,10 @@ const AppRoutes = () => {
           <Route path="/admin/categories" element={<Categories />} />
 
           <Route path="/admin/foods" element={<AdminFoods />} />
+
           <Route path="/admin/orders" element={<AdminOrders />} />
+
+          <Route path="/admin/payments" element={<AdminPayments />} />
         </Route>
       </Route>
 
