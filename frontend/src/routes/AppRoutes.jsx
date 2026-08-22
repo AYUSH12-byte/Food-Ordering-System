@@ -18,6 +18,7 @@ import OrderDetails from "../pages/customer/OrderDetails";
 import CustomerPayments from "../pages/customer/Payments";
 import Receipt from "../pages/customer/Receipt";
 import CustomerFeedback from "../pages/customer/Feedback";
+import Profile from "../pages/customer/Profile";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -25,6 +26,7 @@ import AdminFoods from "../pages/admin/Foods";
 import AdminOrders from "../pages/admin/Orders";
 import AdminPayments from "../pages/admin/Payments";
 import AdminFeedback from "../pages/admin/Feedback";
+import Customers from "../pages/admin/Customers";
 
 const AppRoutes = () => {
   return (
@@ -68,6 +70,8 @@ const AppRoutes = () => {
           <Route path="/receipts/:id" element={<Receipt />} />
 
           <Route path="/feedback" element={<CustomerFeedback />} />
+
+          <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>
 
@@ -88,6 +92,8 @@ const AppRoutes = () => {
           <Route path="/admin/payments" element={<AdminPayments />} />
 
           <Route path="/admin/feedback" element={<AdminFeedback />} />
+
+          <Route path="/admin/customers" element={<Customers />} />
         </Route>
       </Route>
 

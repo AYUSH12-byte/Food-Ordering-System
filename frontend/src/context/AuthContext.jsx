@@ -9,24 +9,33 @@ export const AuthProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(true);
 
-  // Load saved authentication
+  // ==========================================
+  // LOAD SAVED AUTHENTICATION
+  // ==========================================
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+
     const savedUser = localStorage.getItem("user");
 
     if (token && savedUser) {
       try {
         setUser(JSON.parse(savedUser));
-      } catch {
+      } catch (error) {
+        console.error("Failed to parse saved user:", error);
+
         localStorage.removeItem("user");
+
+        localStorage.removeItem("token");
       }
     }
 
     setLoading(false);
   }, []);
 
-  // Login
+  // ==========================================
+  // LOGIN
+  // ==========================================
 
   const login = async (email, password) => {
     const response = await api.post("/auth/login", {
@@ -45,7 +54,9 @@ export const AuthProvider = ({ children }) => {
     return loggedUser;
   };
 
-  // Register
+  // ==========================================
+  // REGISTER
+  // ==========================================
 
   const register = async (userData) => {
     const response = await api.post("/auth/register", userData);
@@ -61,7 +72,19 @@ export const AuthProvider = ({ children }) => {
     return registeredUser;
   };
 
-  // Logout
+  // ==========================================
+  // UPDATE USER
+  // ==========================================
+
+  const updateUser = (updatedUser) => {
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+
+    setUser(updatedUser);
+  };
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -69,26 +92,34 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
 
     setUser(null);
-
-    window.location.reload();
   };
 
-  // Check roles
+  // ==========================================
+  // ROLE CHECK
+  // ==========================================
 
   const isAdmin = user?.role === "admin";
 
   const isCustomer = user?.role === "customer";
+
+  // ==========================================
+  // CONTEXT VALUE
+  // ==========================================
 
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
+
         login,
         register,
+        updateUser,
         logout,
+
         isAdmin,
         isCustomer,
+
         isAuthenticated: !!user,
       }}
     >
@@ -96,5 +127,9 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+// ==========================================
+// CUSTOM HOOK
+// ==========================================
 
 export const useAuth = () => useContext(AuthContext);
