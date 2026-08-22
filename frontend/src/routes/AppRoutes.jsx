@@ -17,12 +17,14 @@ import Orders from "../pages/customer/Orders";
 import OrderDetails from "../pages/customer/OrderDetails";
 import CustomerPayments from "../pages/customer/Payments";
 import Receipt from "../pages/customer/Receipt";
+import CustomerFeedback from "../pages/customer/Feedback";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
 import AdminFoods from "../pages/admin/Foods";
 import AdminOrders from "../pages/admin/Orders";
 import AdminPayments from "../pages/admin/Payments";
+import AdminFeedback from "../pages/admin/Feedback";
 
 const AppRoutes = () => {
   return (
@@ -62,8 +64,10 @@ const AppRoutes = () => {
           <Route path="/orders/:id" element={<OrderDetails />} />
 
           <Route path="/payments" element={<CustomerPayments />} />
-          
+
           <Route path="/receipts/:id" element={<Receipt />} />
+
+          <Route path="/feedback" element={<CustomerFeedback />} />
         </Route>
       </Route>
 
@@ -82,6 +86,8 @@ const AppRoutes = () => {
           <Route path="/admin/orders" element={<AdminOrders />} />
 
           <Route path="/admin/payments" element={<AdminPayments />} />
+
+          <Route path="/admin/feedback" element={<AdminFeedback />} />
         </Route>
       </Route>
 

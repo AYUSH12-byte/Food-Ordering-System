@@ -4,6 +4,8 @@ import { Link, useParams } from "react-router-dom";
 
 import { getOrderById } from "../../services/orderService";
 
+import FeedbackForm from "../../components/customer/FeedbackForm";
+
 const statuses = ["Pending", "Preparing", "Ready", "Delivered"];
 
 const OrderDetails = () => {
@@ -233,6 +235,12 @@ const OrderDetails = () => {
             <h2 className="text-xl font-bold text-slate-900">
               Delivery Information
             </h2>
+
+            {order.orderStatus === "Delivered" && (
+              <div className="mt-6">
+                <FeedbackForm orderId={order._id} onSuccess={fetchOrder} />
+              </div>
+            )}
 
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <div>
