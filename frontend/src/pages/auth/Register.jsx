@@ -89,7 +89,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
-                  placeholder="John Doe"
+                  placeholder="Ayush Chaudhari"
                 />
               </div>
             </div>
@@ -107,7 +107,7 @@ const Register = () => {
                   onChange={handleChange}
                   required
                   className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
-                  placeholder="john@example.com"
+                  placeholder="ayush@example.com"
                 />
               </div>
             </div>
