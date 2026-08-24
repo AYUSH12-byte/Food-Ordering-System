@@ -1,28 +1,27 @@
 import { useEffect, useState } from "react";
-
 import { Link } from "react-router-dom";
+import { Package, ArrowRight, Clock, Sparkles } from "lucide-react";
 
 import { getMyOrders } from "../../services/orderService";
+import Badge from "../../components/ui/Badge";
+import { useToast } from "../../context/ToastContext";
 
 const Orders = () => {
+  const toast = useToast();
   const [orders, setOrders] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
-
-  // FETCH ORDERS
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       setError("");
-
       const response = await getMyOrders();
-
       setOrders(response.orders || []);
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to load orders");
+    } catch (err) {
+      const msg = err.response?.data?.message || "Failed to load order history";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -32,209 +31,135 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
-  // STATUS STYLE
-
-  const getStatusClass = (status) => {
-    switch (status) {
-      case "Pending":
-        return "bg-yellow-100 text-yellow-700";
-
-      case "Preparing":
-        return "bg-blue-100 text-blue-700";
-
-      case "Ready":
-        return "bg-purple-100 text-purple-700";
-
-      case "Delivered":
-        return "bg-green-100 text-green-700";
-
-      case "Cancelled":
-        return "bg-red-100 text-red-700";
-
-      default:
-        return "bg-slate-100 text-slate-700";
-    }
-  };
-
-  // LOADING
-
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 rounded bg-slate-200" />
-          <div className="h-32 rounded-2xl bg-slate-200" />
-          <div className="h-32 rounded-2xl bg-slate-200" />
-          <div className="h-32 rounded-2xl bg-slate-200" />
-        </div>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-4 animate-fade-in">
+        <div className="animate-shimmer h-8 w-48 rounded-xl bg-slate-200" />
+        <div className="animate-shimmer h-40 rounded-2xl bg-slate-200" />
+        <div className="animate-shimmer h-40 rounded-2xl bg-slate-200" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* HEADER */}
-
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-widest text-slate-500">
-          Account
-        </p>
-
-        <h1 className="mt-2 text-3xl font-bold text-slate-900">My Orders</h1>
-
-        <p className="mt-2 text-sm text-slate-500">
-          View your previous orders and track their status.
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="border-b border-slate-200/80 pb-6">
+        <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600 border border-orange-200/80 mb-2">
+          <Package className="h-3.5 w-3.5" />
+          <span>My Order History</span>
+        </div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+          Track Your Meals
+        </h1>
+        <p className="mt-1 text-xs text-slate-500 font-medium">
+          View your order history, delivery details, and receipt invoices.
         </p>
       </div>
 
-      {/* ERROR */}
-
       {error && (
-        <div className="mt-6 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-600">
+        <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 text-xs font-bold text-rose-700">
           {error}
         </div>
       )}
 
-      {/* EMPTY */}
-
+      {/* Empty State */}
       {!error && orders.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-2xl">
-            📦
+        <div className="my-12 rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center max-w-md mx-auto shadow-xs">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-orange-100 text-orange-600 mx-auto mb-4">
+            <Package className="h-8 w-8" />
           </div>
-
-          <h2 className="mt-5 text-xl font-bold text-slate-900">
-            No orders yet
-          </h2>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Once you place an order, it will appear here.
+          <h2 className="text-xl font-extrabold text-slate-900">No Orders Placed Yet</h2>
+          <p className="mt-1 text-xs text-slate-500 font-medium">
+            Discover delicious meals on our menu and place your first order.
           </p>
-
           <Link
             to="/foods"
-            className="mt-5 inline-block rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-3 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:from-orange-600 hover:to-amber-700 transition"
           >
-            Browse Food
+            <Sparkles className="h-4 w-4" />
+            Explore Menu Now
           </Link>
         </div>
       )}
 
-      {/* ORDERS */}
-
+      {/* Orders List */}
       {orders.length > 0 && (
-        <div className="mt-8 space-y-5">
+        <div className="space-y-5">
           {orders.map((order) => {
             const firstItems = order.items?.slice(0, 2) || [];
-
             const extraItems = Math.max((order.items?.length || 0) - 2, 0);
 
             return (
               <div
                 key={order._id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+                className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-md transition-all duration-200 space-y-4"
               >
-                {/* Top */}
-
-                <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                   <div>
-                    <p className="text-xs text-slate-500">Order ID</p>
-
-                    <p className="mt-1 break-all text-sm font-bold text-slate-900">
-                      {order._id}
-                    </p>
-
-                    <p className="mt-2 text-xs text-slate-500">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Order Reference</span>
+                    <p className="font-mono text-sm font-bold text-slate-900">#{order._id}</p>
+                    <p className="text-xs text-slate-400 font-medium flex items-center gap-1 mt-0.5">
+                      <Clock className="h-3 w-3" />
                       {new Date(order.createdAt).toLocaleString()}
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(
-                        order.orderStatus,
-                      )}`}
-                    >
-                      {order.orderStatus}
-                    </span>
-
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        order.paymentStatus === "Paid"
-                          ? "bg-green-100 text-green-700"
-                          : order.paymentStatus === "Failed"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      Payment: {order.paymentStatus}
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <Badge>{order.orderStatus}</Badge>
+                    <Badge>{order.paymentStatus}</Badge>
                   </div>
                 </div>
 
                 {/* Items */}
-
-                <div className="mt-5 space-y-3">
+                <div className="space-y-2.5">
                   {firstItems.map((item, index) => (
-                    <div
-                      key={`${order._id}-${index}`}
-                      className="flex items-center justify-between gap-4"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
+                    <div key={`${order._id}-${index}`} className="flex items-center justify-between gap-4 text-xs">
+                      <div className="flex items-center gap-3">
                         {item.food?.image ? (
                           <img
                             src={item.food.image}
                             alt={item.name}
-                            className="h-12 w-12 rounded-lg object-cover"
+                            className="h-10 w-10 rounded-lg object-cover border border-slate-100"
                           />
                         ) : (
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">
-                            No Image
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-[10px] text-slate-400 font-bold">
+                            No Img
                           </div>
                         )}
-
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-900">
-                            {item.name}
-                          </p>
-
-                          <p className="text-xs text-slate-500">
-                            {item.quantity} × Rs.{" "}
-                            {Number(item.price).toFixed(2)}
-                          </p>
+                        <div>
+                          <p className="font-bold text-slate-900">{item.name}</p>
+                          <p className="text-slate-500">{item.quantity} × Rs. {Number(item.price).toFixed(2)}</p>
                         </div>
                       </div>
-
-                      <p className="shrink-0 text-sm font-semibold text-slate-900">
+                      <span className="font-extrabold text-slate-900">
                         Rs. {Number(item.subtotal).toFixed(2)}
-                      </p>
+                      </span>
                     </div>
                   ))}
 
                   {extraItems > 0 && (
-                    <p className="text-xs text-slate-500">
-                      + {extraItems} more item
-                      {extraItems !== 1 ? "s" : ""}
+                    <p className="text-[11px] font-semibold text-slate-400 italic">
+                      + {extraItems} additional item{extraItems !== 1 ? "s" : ""}
                     </p>
                   )}
                 </div>
 
-                {/* Bottom */}
-
-                <div className="mt-5 flex flex-col justify-between gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center">
+                {/* Footer */}
+                <div className="flex items-center justify-between border-t border-slate-100 pt-4">
                   <div>
-                    <p className="text-xs text-slate-500">Total Amount</p>
-
-                    <p className="mt-1 text-xl font-bold text-slate-900">
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Total Price</span>
+                    <p className="text-lg font-extrabold text-orange-600">
                       Rs. {Number(order.totalAmount).toFixed(2)}
                     </p>
                   </div>
 
                   <Link
                     to={`/orders/${order._id}`}
-                    className="rounded-lg bg-slate-900 px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-slate-800"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition shadow-sm"
                   >
-                    View Details
+                    View Details <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               </div>

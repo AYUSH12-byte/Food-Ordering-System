@@ -1,13 +1,15 @@
 import { useState } from "react";
-
 import { Link, useNavigate } from "react-router-dom";
+import { User, Mail, Lock, Phone, MapPin, UtensilsCrossed, UserPlus } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
+import Button from "../../components/ui/Button";
 
 const Register = () => {
   const navigate = useNavigate();
-
   const { register } = useAuth();
+  const toast = useToast();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -16,9 +18,7 @@ const Register = () => {
     phone: "",
     address: "",
   });
-
   const [error, setError] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -30,121 +30,164 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setLoading(true);
 
     try {
       await register(formData);
-
+      toast.success("Account created successfully! Welcome to FoodOrder.");
       navigate("/");
-    } catch (error) {
-      setError(error.response?.data?.message || "Registration failed");
+    } catch (err) {
+      const msg = err.response?.data?.message || "Registration failed. Please check inputs.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-lg">
-        <h1 className="mb-2 text-3xl font-bold">Create Account</h1>
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 relative overflow-hidden">
+      {/* Decorative Glow */}
+      <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
 
-        <p className="mb-6 text-slate-500">Register as a customer</p>
-
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Full Name</label>
-
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
-              placeholder="Your name"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Email</label>
-
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
-              placeholder="your@email.com"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Password</label>
-
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              minLength={6}
-              required
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
-              placeholder="Minimum 6 characters"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Phone</label>
-
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
-              placeholder="Phone number"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Address</label>
-
-            <textarea
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              required
-              rows="3"
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
-              placeholder="Delivery address"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? "Creating..." : "Create Account"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-slate-600">
-          Already have an account?{" "}
-          <Link to="/login" className="font-semibold text-slate-900">
-            Login
+      <div className="w-full max-w-lg animate-scale-up">
+        {/* Brand Header */}
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2.5 group mb-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25 group-hover:scale-105 transition-transform">
+              <UtensilsCrossed className="h-6 w-6" />
+            </div>
+            <span className="text-2xl font-extrabold tracking-tight text-slate-900">
+              Food<span className="text-orange-600">Order</span>
+            </span>
           </Link>
-        </p>
+          <h1 className="text-2xl font-extrabold text-slate-900">Create Your Account</h1>
+          <p className="mt-1 text-xs text-slate-500 font-medium">Join us for seamless gourmet food ordering</p>
+        </div>
+
+        {/* Card Form */}
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-8 shadow-xl shadow-slate-200/40">
+          {error && (
+            <div className="mb-5 rounded-xl bg-rose-50 border border-rose-200 p-3.5 text-xs font-bold text-rose-700">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                  placeholder="john@example.com"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    minLength={6}
+                    required
+                    className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                    placeholder="Min 6 chars"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                    placeholder="98XXXXXXXX"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Default Delivery Address
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  required
+                  rows={2}
+                  className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                  placeholder="Street, City, Landmark..."
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              loading={loading}
+              variant="primary"
+              size="lg"
+              className="w-full mt-2"
+              icon={UserPlus}
+            >
+              Create Account
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-slate-600 font-medium">
+            Already have an account?{" "}
+            <Link to="/login" className="font-bold text-orange-600 hover:text-orange-700">
+              Sign In
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

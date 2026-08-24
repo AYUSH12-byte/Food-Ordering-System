@@ -1,208 +1,106 @@
-import { useEffect } from "react";
+import Modal from "../ui/Modal";
+import Badge from "../ui/Badge";
+import { User, CreditCard, ShoppingBag, Calendar, CheckCircle2 } from "lucide-react";
 
 const PaymentDetailsModal = ({ payment, onClose }) => {
-  useEffect(() => {
-    const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [onClose]);
-
-  if (!payment) {
-    return null;
-  }
+  if (!payment) return null;
 
   const order = payment.order;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
+    <Modal
+      isOpen={Boolean(payment)}
+      onClose={onClose}
+      title="Payment Record"
+      subtitle={`ID: #${payment._id}`}
+      maxWidth="max-w-2xl"
     >
-      <div
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl"
-        onClick={(event) => event.stopPropagation()}
-      >
-        {/* Header */}
-
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              Payment Details
-            </h2>
-
-            <p className="mt-1 break-all text-xs text-slate-500">
-              Payment ID: {payment._id}
-            </p>
+      <div className="space-y-6">
+        {/* Customer Info */}
+        <div>
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-3">
+            <User className="h-4 w-4 text-orange-500" /> Customer Information
+          </h3>
+          <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 text-xs">
+            <p className="font-bold text-slate-900 text-sm">{payment.user?.name || "Unknown Customer"}</p>
+            <p className="mt-1 text-slate-500 font-medium">{payment.user?.email || "N/A"}</p>
+            <p className="mt-0.5 text-slate-500 font-medium">{payment.user?.phone || "N/A"}</p>
           </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-          >
-            ✕
-          </button>
         </div>
 
-        <div className="space-y-6 p-6">
-          {/* Customer */}
-
-          <div>
-            <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">
-              Customer
-            </h3>
-
-            <div className="mt-3 rounded-xl bg-slate-50 p-4">
-              <p className="font-semibold text-slate-900">
-                {payment.user?.name || "Unknown"}
+        {/* Payment Stats Grid */}
+        <div>
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-3">
+            <CreditCard className="h-4 w-4 text-orange-500" /> Transaction Summary
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-2 text-xs">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4">
+              <p className="text-slate-400 font-medium">Payment Amount</p>
+              <p className="mt-1 text-xl font-extrabold text-orange-600">
+                Rs. {Number(payment.amount).toFixed(2)}
               </p>
+            </div>
 
-              <p className="mt-1 text-sm text-slate-500">
-                {payment.user?.email || "N/A"}
-              </p>
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4">
+              <p className="text-slate-400 font-medium">Payment Method</p>
+              <p className="mt-1 font-bold text-slate-900 text-sm">{payment.paymentMethod}</p>
+            </div>
 
-              <p className="mt-1 text-sm text-slate-500">
-                {payment.user?.phone || "N/A"}
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4">
+              <p className="text-slate-400 font-medium">Payment Status</p>
+              <div className="mt-1.5">
+                <Badge>{payment.paymentStatus}</Badge>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200/80 bg-white p-4">
+              <p className="text-slate-400 font-medium">Transaction ID</p>
+              <p className="mt-1 font-mono font-bold text-slate-800 break-all">
+                {payment.transactionId || "N/A"}
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Payment */}
-
+        {/* Order Details Reference */}
+        {order && (
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">
-              Payment Information
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-3">
+              <ShoppingBag className="h-4 w-4 text-orange-500" /> Linked Order
             </h3>
-
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 p-4">
-                <p className="text-xs text-slate-500">Amount</p>
-
-                <p className="mt-1 text-xl font-bold text-slate-900">
-                  Rs. {Number(payment.amount).toFixed(2)}
-                </p>
+            <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 text-xs space-y-3">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-slate-400 font-medium">Order ID</p>
+                  <p className="font-mono font-bold text-slate-900">#{order._id}</p>
+                </div>
+                <div>
+                  <Badge>{order.orderStatus}</Badge>
+                </div>
               </div>
-
-              <div className="rounded-xl border border-slate-200 p-4">
-                <p className="text-xs text-slate-500">Method</p>
-
-                <p className="mt-1 font-semibold text-slate-900">
-                  {payment.paymentMethod}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 p-4">
-                <p className="text-xs text-slate-500">Status</p>
-
-                <p
-                  className={`mt-1 font-semibold ${
-                    payment.paymentStatus === "Paid"
-                      ? "text-green-600"
-                      : payment.paymentStatus === "Failed"
-                        ? "text-red-600"
-                        : "text-yellow-600"
-                  }`}
-                >
-                  {payment.paymentStatus}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 p-4">
-                <p className="text-xs text-slate-500">Transaction ID</p>
-
-                <p className="mt-1 break-all font-semibold text-slate-900">
-                  {payment.transactionId || "N/A"}
-                </p>
+              <div className="border-t border-slate-200/80 pt-3 flex justify-between font-bold text-slate-900 text-sm">
+                <span>Order Total</span>
+                <span className="text-orange-600">Rs. {Number(order.totalAmount).toFixed(2)}</span>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Order */}
-
-          {order && (
+        {/* Timestamps */}
+        <div className="border-t border-slate-100 pt-4 flex flex-wrap justify-between gap-4 text-xs text-slate-500">
+          <div>
+            <span className="font-medium">Created: </span>
+            <span className="font-bold text-slate-700">{new Date(payment.createdAt).toLocaleString()}</span>
+          </div>
+          {payment.paymentDate && (
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wide text-slate-400">
-                Order
-              </h3>
-
-              <div className="mt-3 rounded-xl bg-slate-50 p-4">
-                <div className="flex justify-between gap-4">
-                  <div>
-                    <p className="text-xs text-slate-500">Order ID</p>
-
-                    <p className="mt-1 break-all text-sm font-semibold text-slate-900">
-                      {order._id}
-                    </p>
-                  </div>
-
-                  <div className="text-right">
-                    <p className="text-xs text-slate-500">Order Status</p>
-
-                    <p className="mt-1 text-sm font-semibold text-slate-900">
-                      {order.orderStatus}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 border-t border-slate-200 pt-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Subtotal</span>
-
-                    <span className="font-medium text-slate-900">
-                      Rs. {Number(order.subtotal).toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="mt-2 flex justify-between text-sm">
-                    <span className="text-slate-500">Delivery</span>
-
-                    <span className="font-medium text-slate-900">
-                      Rs. {Number(order.deliveryCharge).toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 flex justify-between border-t border-slate-200 pt-4">
-                    <span className="font-bold text-slate-900">Total</span>
-
-                    <span className="text-lg font-bold text-slate-900">
-                      Rs. {Number(order.totalAmount).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <span className="font-medium">Paid On: </span>
+              <span className="font-bold text-slate-700">{new Date(payment.paymentDate).toLocaleString()}</span>
             </div>
           )}
-
-          {/* Date */}
-
-          <div className="border-t border-slate-200 pt-5">
-            <p className="text-xs text-slate-500">Created At</p>
-
-            <p className="mt-1 text-sm font-medium text-slate-900">
-              {new Date(payment.createdAt).toLocaleString()}
-            </p>
-
-            {payment.paymentDate && (
-              <>
-                <p className="mt-4 text-xs text-slate-500">Payment Date</p>
-
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {new Date(payment.paymentDate).toLocaleString()}
-                </p>
-              </>
-            )}
-          </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

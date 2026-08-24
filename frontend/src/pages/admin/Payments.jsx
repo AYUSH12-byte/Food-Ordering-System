@@ -1,44 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
+import { Search, RotateCcw, CreditCard, Eye, CheckCircle2, XCircle } from "lucide-react";
 
 import {
   getAllPayments,
   markPaymentAsPaid,
   markPaymentAsFailed,
 } from "../../services/paymentService";
-
 import PaymentDetailsModal from "../../components/admin/PaymentDetailsModal";
+import Badge from "../../components/ui/Badge";
+import { SkeletonTable } from "../../components/ui/Skeleton";
+import { useToast } from "../../context/ToastContext";
 
 const Payments = () => {
+  const toast = useToast();
   const [payments, setPayments] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
-
-  const [successMessage, setSuccessMessage] = useState("");
-
   const [search, setSearch] = useState("");
-
   const [statusFilter, setStatusFilter] = useState("");
-
   const [methodFilter, setMethodFilter] = useState("");
-
   const [selectedPayment, setSelectedPayment] = useState(null);
-
   const [updatingId, setUpdatingId] = useState(null);
-
-  // FETCH PAYMENTS
 
   const fetchPayments = async () => {
     try {
       setLoading(true);
       setError("");
-
       const response = await getAllPayments();
-
       setPayments(response.payments || []);
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to load payments");
+    } catch (err) {
+      const msg = err.response?.data?.message || "Failed to load payments";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -48,11 +41,8 @@ const Payments = () => {
     fetchPayments();
   }, []);
 
-  // FILTER
-
   const filteredPayments = useMemo(() => {
     const searchValue = search.trim().toLowerCase();
-
     return payments.filter((payment) => {
       const matchesSearch =
         !searchValue ||
@@ -63,7 +53,6 @@ const Payments = () => {
 
       const matchesStatus =
         !statusFilter || payment.paymentStatus === statusFilter;
-
       const matchesMethod =
         !methodFilter || payment.paymentMethod === methodFilter;
 
@@ -71,84 +60,58 @@ const Payments = () => {
     });
   }, [payments, search, statusFilter, methodFilter]);
 
-  // MARK PAID
-
   const handleMarkPaid = async (payment) => {
-    const confirmed = window.confirm("Mark this payment as paid?");
+    if (window.confirm("Mark this payment as paid?")) {
+      try {
+        setUpdatingId(payment._id);
+        setError("");
+        await markPaymentAsPaid(payment._id);
+        toast.success("Payment marked as paid!");
+        await fetchPayments();
 
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setUpdatingId(payment._id);
-
-      setError("");
-      setSuccessMessage("");
-
-      await markPaymentAsPaid(payment._id);
-
-      setSuccessMessage("Payment marked as paid successfully");
-
-      await fetchPayments();
-
-      setSelectedPayment((current) => {
-        if (!current || current._id !== payment._id) {
-          return current;
-        }
-
-        return {
-          ...current,
-          paymentStatus: "Paid",
-          paymentDate: new Date().toISOString(),
-        };
-      });
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to update payment");
-    } finally {
-      setUpdatingId(null);
+        setSelectedPayment((current) => {
+          if (!current || current._id !== payment._id) return current;
+          return {
+            ...current,
+            paymentStatus: "Paid",
+            paymentDate: new Date().toISOString(),
+          };
+        });
+      } catch (err) {
+        const msg = err.response?.data?.message || "Failed to update payment";
+        setError(msg);
+        toast.error(msg);
+      } finally {
+        setUpdatingId(null);
+      }
     }
   };
-
-  // MARK FAILED
 
   const handleMarkFailed = async (payment) => {
-    const confirmed = window.confirm("Mark this payment as failed?");
+    if (window.confirm("Mark this payment as failed?")) {
+      try {
+        setUpdatingId(payment._id);
+        setError("");
+        await markPaymentAsFailed(payment._id);
+        toast.warning("Payment marked as failed");
+        await fetchPayments();
 
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setUpdatingId(payment._id);
-
-      setError("");
-      setSuccessMessage("");
-
-      await markPaymentAsFailed(payment._id);
-
-      setSuccessMessage("Payment marked as failed");
-
-      await fetchPayments();
-
-      setSelectedPayment((current) => {
-        if (!current || current._id !== payment._id) {
-          return current;
-        }
-
-        return {
-          ...current,
-          paymentStatus: "Failed",
-        };
-      });
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to update payment");
-    } finally {
-      setUpdatingId(null);
+        setSelectedPayment((current) => {
+          if (!current || current._id !== payment._id) return current;
+          return {
+            ...current,
+            paymentStatus: "Failed",
+          };
+        });
+      } catch (err) {
+        const msg = err.response?.data?.message || "Failed to update payment";
+        setError(msg);
+        toast.error(msg);
+      } finally {
+        setUpdatingId(null);
+      }
     }
   };
-
-  // RESET
 
   const resetFilters = () => {
     setSearch("");
@@ -156,274 +119,167 @@ const Payments = () => {
     setMethodFilter("");
   };
 
-  // STATUS STYLE
-
-  const getStatusClass = (status) => {
-    if (status === "Paid") {
-      return "bg-green-100 text-green-700";
-    }
-
-    if (status === "Failed") {
-      return "bg-red-100 text-red-700";
-    }
-
-    return "bg-yellow-100 text-yellow-700";
-  };
-
   return (
     <>
-      <div className="p-4 sm:p-6 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in max-w-7xl mx-auto">
         {/* Header */}
-
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-            Payments
+        <div className="border-b border-slate-200/80 pb-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600 border border-orange-200/80 mb-2">
+            <CreditCard className="h-3.5 w-3.5" />
+            <span>Financial Transactions</span>
+          </div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            Payment Audit Log
           </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            View and manage customer payments
+          <p className="mt-1 text-xs text-slate-500 font-medium">
+            Monitor incoming revenue, cash on delivery settlements, and payment verifications.
           </p>
         </div>
 
-        {/* Messages */}
-
-        {successMessage && (
-          <div className="mt-6 rounded-lg bg-green-50 p-4 text-sm font-medium text-green-700">
-            {successMessage}
-          </div>
-        )}
-
         {error && (
-          <div className="mt-6 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-600">
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 text-xs font-bold text-rose-700">
             {error}
           </div>
         )}
 
         {/* Filters */}
-
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm space-y-4">
           <div className="grid gap-4 md:grid-cols-4">
-            {/* Search */}
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Search
-              </label>
-
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Payment, order or customer..."
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
-              />
+            <div className="relative">
+              <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Payment ID, order or name..."
+                  className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                />
+              </div>
             </div>
 
-            {/* Status */}
-
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Payment Status
-              </label>
-
+              <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">Payment Status</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-slate-900"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
               >
                 <option value="">All Statuses</option>
-
                 <option value="Pending">Pending</option>
-
                 <option value="Paid">Paid</option>
-
                 <option value="Failed">Failed</option>
               </select>
             </div>
 
-            {/* Method */}
-
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Method
-              </label>
-
+              <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">Method</label>
               <select
                 value={methodFilter}
                 onChange={(e) => setMethodFilter(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-slate-900"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
               >
                 <option value="">All Methods</option>
-
                 <option value="Cash on Delivery">Cash on Delivery</option>
-
                 <option value="Online">Online</option>
               </select>
             </div>
-
-            {/* Reset */}
 
             <div className="flex items-end">
               <button
                 type="button"
                 onClick={resetFilters}
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
               >
+                <RotateCcw className="h-3.5 w-3.5" />
                 Reset Filters
               </button>
             </div>
           </div>
 
-          <p className="mt-4 text-sm text-slate-500">
-            Showing{" "}
-            <span className="font-semibold text-slate-900">
-              {filteredPayments.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-semibold text-slate-900">
-              {payments.length}
-            </span>{" "}
-            payments
+          <p className="text-xs text-slate-500 font-medium pt-1">
+            Showing <strong className="text-slate-900 font-bold">{filteredPayments.length}</strong> of {payments.length} payment records
           </p>
         </div>
 
         {/* Table */}
-
-        <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
           {loading ? (
-            <div className="p-10 text-center text-slate-500">
-              Loading payments...
-            </div>
+            <SkeletonTable rows={6} cols={6} />
           ) : filteredPayments.length === 0 ? (
-            <div className="p-10 text-center">
-              <h2 className="text-lg font-bold text-slate-900">
-                No payments found
-              </h2>
-
-              <p className="mt-2 text-sm text-slate-500">
-                Try changing your filters.
-              </p>
+            <div className="p-12 text-center max-w-md mx-auto">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 mx-auto mb-3">
+                <CreditCard className="h-6 w-6" />
+              </div>
+              <h3 className="text-base font-bold text-slate-900">No payment logs found</h3>
+              <p className="mt-1 text-xs text-slate-500">Try adjusting your search criteria.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1100px]">
-                <thead className="border-b border-slate-200 bg-slate-50">
+              <table className="w-full min-w-[1000px]">
+                <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Payment
-                    </th>
-
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Customer
-                    </th>
-
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Order
-                    </th>
-
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Amount
-                    </th>
-
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Method
-                    </th>
-
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Status
-                    </th>
-
-                    <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Actions
-                    </th>
+                    <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Payment ID</th>
+                    <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Order ID</th>
+                    <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Method</th>
+                    <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3.5 text-right text-xs font-bold uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-100 text-xs">
                   {filteredPayments.map((payment) => (
-                    <tr key={payment._id} className="hover:bg-slate-50">
-                      {/* Payment */}
-
-                      <td className="px-6 py-5">
-                        <p className="max-w-[180px] truncate text-sm font-semibold text-slate-900">
-                          #{payment._id.slice(-8)}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          {new Date(payment.createdAt).toLocaleDateString()}
-                        </p>
+                    <tr key={payment._id} className="hover:bg-slate-50/80 transition">
+                      <td className="px-6 py-4 font-mono">
+                        <p className="font-bold text-slate-900">#{payment._id.slice(-6).toUpperCase()}</p>
+                        <p className="text-[11px] text-slate-400">{new Date(payment.createdAt).toLocaleDateString()}</p>
                       </td>
 
-                      {/* Customer */}
-
-                      <td className="px-6 py-5">
-                        <p className="font-semibold text-slate-900">
-                          {payment.user?.name || "Unknown"}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          {payment.user?.email || "N/A"}
-                        </p>
+                      <td className="px-6 py-4">
+                        <p className="font-bold text-slate-900 text-sm">{payment.user?.name || "Customer"}</p>
+                        <p className="text-[11px] text-slate-500">{payment.user?.email || "N/A"}</p>
                       </td>
 
-                      {/* Order */}
-
-                      <td className="px-6 py-5">
-                        <p className="max-w-[180px] truncate text-sm font-medium text-slate-900">
-                          #{payment.order?._id?.slice(-8) || "N/A"}
-                        </p>
+                      <td className="px-6 py-4 font-mono text-slate-600">
+                        #{payment.order?._id?.slice(-6).toUpperCase() || "N/A"}
                       </td>
 
-                      {/* Amount */}
-
-                      <td className="px-6 py-5">
-                        <p className="font-bold text-slate-900">
+                      <td className="px-6 py-4">
+                        <span className="font-extrabold text-orange-600 text-sm">
                           Rs. {Number(payment.amount).toFixed(2)}
-                        </p>
-                      </td>
-
-                      {/* Method */}
-
-                      <td className="px-6 py-5">
-                        <p className="text-sm text-slate-700">
-                          {payment.paymentMethod}
-                        </p>
-                      </td>
-
-                      {/* Status */}
-
-                      <td className="px-6 py-5">
-                        <span
-                          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(
-                            payment.paymentStatus,
-                          )}`}
-                        >
-                          {payment.paymentStatus}
                         </span>
                       </td>
 
-                      {/* Actions */}
+                      <td className="px-6 py-4 font-semibold text-slate-700">
+                        {payment.paymentMethod}
+                      </td>
 
-                      <td className="px-6 py-5">
-                        <div className="flex justify-end gap-2">
+                      <td className="px-6 py-4">
+                        <Badge>{payment.paymentStatus}</Badge>
+                      </td>
+
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
                           {payment.paymentStatus === "Pending" && (
                             <>
                               <button
                                 type="button"
                                 disabled={updatingId === payment._id}
                                 onClick={() => handleMarkPaid(payment)}
-                                className="rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-100 disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition disabled:opacity-40"
                               >
-                                Paid
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Mark Paid
                               </button>
-
                               <button
                                 type="button"
                                 disabled={updatingId === payment._id}
                                 onClick={() => handleMarkFailed(payment)}
-                                className="rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-xl bg-rose-50 border border-rose-200 px-2.5 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition disabled:opacity-40"
                               >
-                                Failed
+                                <XCircle className="h-3.5 w-3.5" /> Fail
                               </button>
                             </>
                           )}
@@ -431,9 +287,9 @@ const Payments = () => {
                           <button
                             type="button"
                             onClick={() => setSelectedPayment(payment)}
-                            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition shadow-2xs"
                           >
-                            View
+                            <Eye className="h-3.5 w-3.5" /> Details
                           </button>
                         </div>
                       </td>
@@ -445,8 +301,6 @@ const Payments = () => {
           )}
         </div>
       </div>
-
-      {/* Modal */}
 
       {selectedPayment && (
         <PaymentDetailsModal

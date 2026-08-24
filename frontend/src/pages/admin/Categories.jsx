@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
+import { Plus, Edit3, Trash2, FolderTree } from "lucide-react";
 
 import CategoryForm from "../../components/admin/CategoryForm";
-
+import Modal from "../../components/ui/Modal";
+import Button from "../../components/ui/Button";
+import { SkeletonTable } from "../../components/ui/Skeleton";
+import { useToast } from "../../context/ToastContext";
 import {
   getCategories,
   createCategory,
@@ -10,36 +14,24 @@ import {
 } from "../../services/categoryService";
 
 const Categories = () => {
+  const toast = useToast();
   const [categories, setCategories] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
   const [formLoading, setFormLoading] = useState(false);
-
   const [pageError, setPageError] = useState("");
-
-  const [successMessage, setSuccessMessage] = useState("");
-
   const [showModal, setShowModal] = useState(false);
-
   const [editingCategory, setEditingCategory] = useState(null);
-
-  // ==========================================
-  // FETCH CATEGORIES
-  // ==========================================
 
   const fetchCategories = async () => {
     try {
       setLoading(true);
       setPageError("");
-
       const data = await getCategories();
-
       setCategories(data.categories || []);
     } catch (error) {
-      setPageError(
-        error.response?.data?.message || "Failed to load categories",
-      );
+      const msg = error.response?.data?.message || "Failed to load categories";
+      setPageError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -49,19 +41,12 @@ const Categories = () => {
     fetchCategories();
   }, []);
 
-  // ==========================================
-  // ADD CATEGORY
-  // ==========================================
-
   const handleCreate = async (categoryData) => {
     try {
       setFormLoading(true);
-
       await createCategory(categoryData);
-
       setShowModal(false);
-      setSuccessMessage("Category created successfully");
-
+      toast.success("Category created successfully!");
       await fetchCategories();
     } catch (error) {
       throw error;
@@ -69,22 +54,14 @@ const Categories = () => {
       setFormLoading(false);
     }
   };
-
-  // ==========================================
-  // UPDATE CATEGORY
-  // ==========================================
 
   const handleUpdate = async (categoryData) => {
     try {
       setFormLoading(true);
-
       await updateCategory(editingCategory._id, categoryData);
-
       setShowModal(false);
       setEditingCategory(null);
-
-      setSuccessMessage("Category updated successfully");
-
+      toast.success("Category updated successfully!");
       await fetchCategories();
     } catch (error) {
       throw error;
@@ -93,204 +70,141 @@ const Categories = () => {
     }
   };
 
-  // ==========================================
-  // DELETE CATEGORY
-  // ==========================================
-
   const handleDelete = async (category) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${category.name}"?`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setPageError("");
-
-      await deleteCategory(category._id);
-
-      setSuccessMessage("Category deleted successfully");
-
-      await fetchCategories();
-    } catch (error) {
-      setPageError(
-        error.response?.data?.message || "Failed to delete category",
-      );
+    if (window.confirm(`Are you sure you want to delete "${category.name}"?`)) {
+      try {
+        setPageError("");
+        await deleteCategory(category._id);
+        toast.info("Category deleted successfully");
+        await fetchCategories();
+      } catch (error) {
+        const msg = error.response?.data?.message || "Failed to delete category";
+        setPageError(msg);
+        toast.error(msg);
+      }
     }
   };
-
-  // ==========================================
-  // OPEN ADD MODAL
-  // ==========================================
 
   const openAddModal = () => {
     setEditingCategory(null);
     setShowModal(true);
-    setSuccessMessage("");
   };
-
-  // ==========================================
-  // OPEN EDIT MODAL
-  // ==========================================
 
   const openEditModal = (category) => {
     setEditingCategory(category);
     setShowModal(true);
-    setSuccessMessage("");
   };
 
-  // ==========================================
-  // CLOSE MODAL
-  // ==========================================
-
   const closeModal = () => {
-    if (formLoading) {
-      return;
+    if (!formLoading) {
+      setShowModal(false);
+      setEditingCategory(null);
     }
-
-    setShowModal(false);
-    setEditingCategory(null);
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-fade-in max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center border-b border-slate-200/80 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
-            Categories
+          <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600 border border-orange-200/80 mb-2">
+            <FolderTree className="h-3.5 w-3.5" />
+            <span>Menu Management</span>
+          </div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            Category Management
           </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage your restaurant food categories
+          <p className="mt-1 text-xs text-slate-500 font-medium">
+            Organize food offerings into clear customer categories.
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-        >
-          + Add Category
-        </button>
+        <Button onClick={openAddModal} variant="primary" icon={Plus}>
+          Add Category
+        </Button>
       </div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="mt-6 rounded-lg bg-green-50 p-4 text-sm font-medium text-green-700">
-          {successMessage}
-        </div>
-      )}
-
-      {/* Error Message */}
       {pageError && (
-        <div className="mt-6 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-600">
+        <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 text-xs font-bold text-rose-700">
           {pageError}
         </div>
       )}
 
-      {/* Categories */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {/* Table Container */}
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         {loading ? (
-          <div className="p-10 text-center text-slate-500">
-            Loading categories...
-          </div>
+          <SkeletonTable rows={5} cols={4} />
         ) : categories.length === 0 ? (
-          <div className="p-10 text-center">
-            <h3 className="text-lg font-semibold text-slate-900">
-              No categories found
-            </h3>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Add your first food category.
-            </p>
-
-            <button
-              onClick={openAddModal}
-              className="mt-5 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
-            >
+          <div className="p-12 text-center max-w-md mx-auto">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 mx-auto mb-3">
+              <FolderTree className="h-6 w-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900">No categories found</h3>
+            <p className="mt-1 text-xs text-slate-500">Create your first food category to get started.</p>
+            <Button onClick={openAddModal} variant="primary" className="mt-4" icon={Plus}>
               Add Category
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
-              <thead className="border-b border-slate-200 bg-slate-50">
+            <table className="w-full min-w-[700px]">
+              <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Category
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Description
-                  </th>
-
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Status
-                  </th>
-
-                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Actions
-                  </th>
+                  <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-bold uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3.5 text-right text-xs font-bold uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-100 text-xs">
                 {categories.map((category) => (
-                  <tr key={category._id} className="hover:bg-slate-50">
-                    <td className="px-6 py-5">
+                  <tr key={category._id} className="hover:bg-slate-50/80 transition">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         {category.image ? (
                           <img
                             src={category.image}
                             alt={category.name}
-                            className="h-12 w-12 rounded-lg object-cover"
+                            className="h-10 w-10 rounded-xl object-cover border border-slate-100 shrink-0"
                           />
                         ) : (
-                          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">
-                            No Image
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[10px] text-slate-400 font-bold">
+                            No Img
                           </div>
                         )}
-
-                        <span className="font-semibold text-slate-900">
-                          {category.name}
-                        </span>
+                        <span className="font-bold text-slate-900 text-sm">{category.name}</span>
                       </div>
                     </td>
-
-                    <td className="max-w-md px-6 py-5">
-                      <p className="line-clamp-2 text-sm text-slate-600">
-                        {category.description || "No description"}
-                      </p>
+                    <td className="max-w-md px-6 py-4 text-slate-600">
+                      <p className="line-clamp-2 leading-relaxed">{category.description || "No description provided."}</p>
                     </td>
-
-                    <td className="px-6 py-5">
+                    <td className="px-6 py-4">
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
                           category.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : "bg-rose-50 text-rose-700 border-rose-200"
                         }`}
                       >
+                        <span className={`h-1.5 w-1.5 rounded-full ${category.isActive ? "bg-emerald-500" : "bg-rose-500"}`} />
                         {category.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-
-                    <td className="px-6 py-5">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEditModal(category)}
-                          className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                          className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
+                          title="Edit"
                         >
-                          Edit
+                          <Edit3 className="h-4 w-4" />
                         </button>
-
                         <button
                           onClick={() => handleDelete(category)}
-                          className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                          className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50 transition"
+                          title="Delete"
                         >
-                          Delete
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -302,43 +216,20 @@ const Categories = () => {
         )}
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">
-                  {editingCategory ? "Edit Category" : "Add Category"}
-                </h2>
-
-                <p className="mt-1 text-sm text-slate-500">
-                  {editingCategory
-                    ? "Update category information"
-                    : "Create a new food category"}
-                </p>
-              </div>
-
-              <button
-                onClick={closeModal}
-                disabled={formLoading}
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-6">
-              <CategoryForm
-                initialData={editingCategory}
-                onSubmit={editingCategory ? handleUpdate : handleCreate}
-                onCancel={closeModal}
-                loading={formLoading}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Unified Form Modal */}
+      <Modal
+        isOpen={showModal}
+        onClose={closeModal}
+        title={editingCategory ? "Edit Category" : "Add New Category"}
+        subtitle={editingCategory ? "Update details for this food category" : "Create a new section for your customer menu"}
+      >
+        <CategoryForm
+          initialData={editingCategory}
+          onSubmit={editingCategory ? handleUpdate : handleCreate}
+          onCancel={closeModal}
+          loading={formLoading}
+        />
+      </Modal>
     </div>
   );
 };

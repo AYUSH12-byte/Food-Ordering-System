@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Utensils, Image, Clock, Banknote, Tag, FileText } from "lucide-react";
+import Button from "../ui/Button";
 
 const defaultForm = {
   name: "",
@@ -18,7 +20,6 @@ const FoodForm = ({
   loading = false,
 }) => {
   const [formData, setFormData] = useState(defaultForm);
-
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -35,13 +36,11 @@ const FoodForm = ({
     } else {
       setFormData(defaultForm);
     }
-
     setError("");
   }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -50,7 +49,6 @@ const FoodForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
 
     if (!formData.name.trim()) {
@@ -91,164 +89,166 @@ const FoodForm = ({
         isAvailable: Boolean(formData.isAvailable),
         preparationTime: Number(formData.preparationTime),
       });
-    } catch (error) {
-      setError(error.response?.data?.message || "Something went wrong");
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-600">
+        <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-700">
           {error}
         </div>
       )}
 
       {/* Name */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
           Food Name
         </label>
-
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="e.g. Chicken Pizza"
-          disabled={loading}
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
-        />
+        <div className="relative">
+          <Utensils className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="e.g. Gourmet Truffle Pizza"
+            disabled={loading}
+            className="w-full rounded-xl border border-slate-200 pl-9 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+          />
+        </div>
       </div>
 
       {/* Category */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
           Category
         </label>
-
-        <select
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          disabled={loading}
-          className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
-        >
-          <option value="">Select category</option>
-
-          {categories.map((category) => (
-            <option key={category._id} value={category._id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <Tag className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            disabled={loading}
+            className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+          >
+            <option value="">Select Category</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Description */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
+        <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
           Description
         </label>
-
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={4}
-          placeholder="Describe the food item"
-          disabled={loading}
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
-        />
+        <div className="relative">
+          <FileText className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={3}
+            placeholder="Describe the dish ingredients and flavors..."
+            disabled={loading}
+            className="w-full rounded-xl border border-slate-200 pl-9 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+          />
+        </div>
       </div>
 
-      {/* Price + Preparation */}
+      {/* Price + Prep Time */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Price
+          <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Price (Rs.)
           </label>
-
-          <input
-            type="number"
-            name="price"
-            min="0"
-            step="0.01"
-            value={formData.price}
-            onChange={handleChange}
-            placeholder="450"
-            disabled={loading}
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
-          />
+          <div className="relative">
+            <Banknote className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <input
+              type="number"
+              name="price"
+              min="0"
+              step="0.01"
+              value={formData.price}
+              onChange={handleChange}
+              placeholder="450"
+              disabled={loading}
+              className="w-full rounded-xl border border-slate-200 pl-9 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+            />
+          </div>
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Preparation Time (minutes)
+          <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            Prep Time (mins)
           </label>
+          <div className="relative">
+            <Clock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <input
+              type="number"
+              name="preparationTime"
+              min="1"
+              value={formData.preparationTime}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full rounded-xl border border-slate-200 pl-9 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+            />
+          </div>
+        </div>
+      </div>
 
+      {/* Image URL */}
+      <div>
+        <label className="mb-1 block text-xs font-bold text-slate-700 uppercase tracking-wider">
+          Image URL
+        </label>
+        <div className="relative">
+          <Image className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
           <input
-            type="number"
-            name="preparationTime"
-            min="1"
-            value={formData.preparationTime}
+            type="url"
+            name="image"
+            value={formData.image}
             onChange={handleChange}
+            placeholder="https://images.unsplash.com/photo-..."
             disabled={loading}
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+            className="w-full rounded-xl border border-slate-200 pl-9 pr-4 py-2.5 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
           />
         </div>
       </div>
 
-      {/* Image */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-slate-700">
-          Image URL
+      {/* Availability Checkbox */}
+      <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            name="isAvailable"
+            checked={formData.isAvailable}
+            onChange={handleChange}
+            disabled={loading}
+            className="h-4 w-4 rounded text-orange-600 focus:ring-orange-500 border-slate-300"
+          />
+          <span className="text-xs font-bold text-slate-800">
+            Dish is currently available for ordering
+          </span>
         </label>
-
-        <input
-          type="url"
-          name="image"
-          value={formData.image}
-          onChange={handleChange}
-          placeholder="https://example.com/food.jpg"
-          disabled={loading}
-          className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
-        />
       </div>
 
-      {/* Availability */}
-      <label className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          name="isAvailable"
-          checked={formData.isAvailable}
-          onChange={handleChange}
-          disabled={loading}
-          className="h-4 w-4 rounded border-slate-300"
-        />
-
-        <span className="text-sm font-medium text-slate-700">
-          Food is currently available
-        </span>
-      </label>
-
-      {/* Buttons */}
-      <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={loading}
-          className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50"
-        >
+      {/* Action Footer */}
+      <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+        <Button variant="secondary" onClick={onCancel} disabled={loading}>
           Cancel
-        </button>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? "Saving..." : initialData ? "Update Food" : "Add Food"}
-        </button>
+        </Button>
+        <Button type="submit" loading={loading} variant="primary">
+          {initialData ? "Save Changes" : "Create Dish"}
+        </Button>
       </div>
     </form>
   );
