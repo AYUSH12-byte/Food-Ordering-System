@@ -28,7 +28,7 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     setMobileMenuOpen(false);
-    navigate("/login");
+    navigate("/");
   };
 
   const navLinkClass = ({ isActive }) =>

@@ -21,7 +21,7 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const menuItems = [
