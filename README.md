@@ -5,10 +5,10 @@
 ## 📸 Screenshots
 
 ### 🏠 Home Page
-![Home](./screenshots/home.png)
+![Home](./screenshots/Home.png)
 
 ### 🍕 Menu / Foods Page
-![Foods](./screenshots/foods.png)
+![Foods](./screenshots/Menu.png)
 
 ---
 
