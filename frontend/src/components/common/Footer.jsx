@@ -8,8 +8,10 @@ import {
   Send,
   Heart,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const Footer = () => {
+  const { user } = useAuth();
   return (
     <footer className="border-t border-slate-200/80 bg-slate-950 text-slate-300">
       <div className="mx-auto max-w-7xl px-4 pt-16 pb-8 sm:px-6 lg:px-8">
@@ -51,21 +53,25 @@ const Footer = () => {
                   Browse Menu
                 </Link>
               </li>
-              <li>
-                <Link to="/cart" className="hover:text-orange-400 transition">
-                  Shopping Cart
-                </Link>
-              </li>
-              <li>
-                <Link to="/orders" className="hover:text-orange-400 transition">
-                  My Orders
-                </Link>
-              </li>
-              <li>
-                <Link to="/feedback" className="hover:text-orange-400 transition">
-                  Customer Feedback
-                </Link>
-              </li>
+              {user?.role === "customer" && (
+                <>
+                  <li>
+                    <Link to="/cart" className="hover:text-orange-400 transition">
+                      Shopping Cart
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/orders" className="hover:text-orange-400 transition">
+                      My Orders
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/feedback" className="hover:text-orange-400 transition">
+                      Customer Feedback
+                    </Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 
