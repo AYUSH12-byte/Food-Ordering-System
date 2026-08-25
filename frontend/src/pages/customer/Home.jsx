@@ -9,14 +9,14 @@ const Home = () => {
   const { itemCount } = useCart();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="bg-slate-50">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-white">
         {/* Background glow effects */}
         <div className="absolute top-0 right-1/4 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
 
-        <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 relative z-10">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-2 lg:items-center lg:gap-12 lg:px-8 lg:py-20 relative z-10">
           <div className="animate-fade-in">
             <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-4 py-1.5 text-xs font-bold text-orange-600 border border-orange-200/80 shadow-2xs">
               <Sparkles className="h-3.5 w-3.5" />
@@ -93,7 +93,7 @@ const Home = () => {
                 className="h-[520px] w-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
-              
+
               {/* Floating card overlay */}
               <div className="absolute bottom-6 left-6 right-6 rounded-2xl bg-white/90 backdrop-blur-md p-4 shadow-xl border border-white/50 flex items-center justify-between">
                 <div className="flex items-center gap-3">

@@ -132,7 +132,9 @@ const Navbar = () => {
                   {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <div className="text-left leading-tight">
-                  <p className="text-xs font-bold text-slate-800">{user.name}</p>
+                  <p className="text-xs font-bold text-slate-800">
+                    {user.name}
+                  </p>
                   <p className="text-[10px] capitalize text-slate-500 font-medium">
                     {user.role}
                   </p>
