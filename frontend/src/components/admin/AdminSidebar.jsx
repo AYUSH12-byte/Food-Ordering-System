@@ -129,19 +129,6 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
 
         {/* Links & Logout */}
         <div className="border-t border-slate-800/80 p-4 space-y-2">
-          <a
-            href="/"
-            target="_blank"
-            rel="noreferrer"
-            className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition"
-          >
-            <span className="flex items-center gap-2">
-              <ExternalLink className="h-4 w-4 text-orange-400" />
-              Customer Store
-            </span>
-            <ChevronRight className="h-3.5 w-3.5 opacity-50" />
-          </a>
-
           <button
             type="button"
             onClick={handleLogout}
