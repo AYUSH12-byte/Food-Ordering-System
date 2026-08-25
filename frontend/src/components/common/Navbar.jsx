@@ -32,17 +32,15 @@ const Navbar = () => {
   };
 
   const navLinkClass = ({ isActive }) =>
-    `flex items-center gap-2 text-sm font-medium transition-all duration-200 ${
-      isActive
-        ? "text-orange-600 font-semibold"
-        : "text-slate-600 hover:text-slate-900"
+    `flex items-center gap-2 text-sm font-medium transition-all duration-200 ${isActive
+      ? "text-orange-600 font-semibold"
+      : "text-slate-600 hover:text-slate-900"
     }`;
 
   const mobileNavLinkClass = ({ isActive }) =>
-    `flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition ${
-      isActive
-        ? "bg-orange-50 text-orange-600 font-semibold"
-        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+    `flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition ${isActive
+      ? "bg-orange-50 text-orange-600 font-semibold"
+      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
     }`;
 
   return (
@@ -124,22 +122,7 @@ const Navbar = () => {
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <Link
-                to="/profile"
-                className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-slate-50 px-3 py-1.5 hover:bg-slate-100 transition"
-              >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-500 text-xs font-bold text-white">
-                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </div>
-                <div className="text-left leading-tight">
-                  <p className="text-xs font-bold text-slate-800">
-                    {user.name}
-                  </p>
-                  <p className="text-[10px] capitalize text-slate-500 font-medium">
-                    {user.role}
-                  </p>
-                </div>
-              </Link>
+
 
               {user.role === "admin" && (
                 <Link
